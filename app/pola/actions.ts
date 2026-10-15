@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 
 export interface PolaQuestion {
+  category: string;
   word: string;
   gloss: string | null;
   ref: string;
@@ -57,6 +58,7 @@ export async function generatePolaQuiz(count = 10): Promise<PolaQuestion[]> {
     const others = shuffle(CATEGORIES.filter((c) => c.feature !== cat.feature)).slice(0, 3);
     const options = shuffle([cat, ...others]).map((c) => c.label);
     out.push({
+      category: cat.feature,
       word: w.text_ar,
       gloss: w.gloss_id,
       ref: `${w.surah}:${w.ayah}`,
@@ -65,4 +67,12 @@ export async function generatePolaQuiz(count = 10): Promise<PolaQuestion[]> {
     });
   }
   return shuffle(out);
+}
+
+/** Menyimpan satu jawaban kuis pola (dipakai untuk skor tata bahasa di beranda). */
+export async function recordPolaAnswer(category: string, correct: boolean): Promise<void> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return;
+  await supabase.from("pola_attempts").insert({ user_id: auth.user.id, category, correct });
 }
