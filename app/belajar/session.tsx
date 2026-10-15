@@ -125,11 +125,57 @@ function Example({ ex, reveal }: { ex: ExampleView; reveal: boolean }) {
         ))}
       </p>
       {reveal && (
-        <p className="mt-2 text-sm opacity-80">
-          {ex.translation} <span className="opacity-50">(QS {ex.surah}:{ex.ayah})</span>
-        </p>
+        <>
+          <p className="mt-2 text-sm opacity-80">
+            {ex.translation} <span className="opacity-50">(QS {ex.surah}:{ex.ayah})</span>
+          </p>
+          <CopyButton text={exampleText(ex)} />
+        </>
       )}
     </div>
+  );
+}
+
+/** Teks salinan: ayat Arab, terjemah, dan rujukan surah:ayat. */
+function exampleText(ex: ExampleView): string {
+  const arab = ex.words.map((w) => w.text).join(" ");
+  return `${arab}\n${ex.translation}\n(QS ${ex.surah}:${ex.ayah})`;
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [state, setState] = useState<"idle" | "ok" | "fail">("idle");
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text);
+      setState("ok");
+    } catch {
+      // Cadangan untuk konteks tanpa Clipboard API.
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        setState(ok ? "ok" : "fail");
+      } catch {
+        setState("fail");
+      }
+    }
+    setTimeout(() => setState("idle"), 2000);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="mt-2 rounded-lg border border-current/25 px-3 py-1 text-xs"
+    >
+      {state === "ok" ? "Tersalin ✓" : state === "fail" ? "Gagal menyalin" : "Salin ayat & arti"}
+    </button>
   );
 }
 
