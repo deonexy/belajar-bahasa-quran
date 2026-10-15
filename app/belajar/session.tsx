@@ -394,7 +394,7 @@ function LessonView({ card, onDone }: { card: LessonCard; onDone: (ok: boolean) 
           {allAnswered && (
             <button
               className="rounded-xl bg-emerald-700 px-5 py-2.5 font-medium text-white"
-              onClick={() => onDone(score / card.exercises.length >= 0.75)}
+              onClick={() => onDone(score / card.exercises.length >= 0.8)}
             >
               Selesai ({score}/{card.exercises.length} tepat)
             </button>

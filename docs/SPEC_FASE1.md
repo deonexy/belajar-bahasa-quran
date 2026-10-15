@@ -356,7 +356,9 @@ Skema contoh di atas memakai nama generik. Repo memakai nama lain dan **tidak di
 | `review_log` | `review_logs` |
 | `app_config` | `user_settings` (tambah kolom target) |
 | `grammar_unit`, `quiz_item` | `lessons` dan `items` untuk pelajaran yang sudah ada; tabel baru hanya bila tidak cukup |
-| `comprehension_test`, `daily_snapshot`, `data_source`, `tadabbur_note`, `grammar_progress` | Belum ada; buat dengan nama jamak (`comprehension_tests`, `daily_snapshots`, ...) |
+| `daily_snapshot` | `daily_stats` (sudah ada; kolom `roots_mastered`, `test_accuracy_4w` ditambah di migrasi 0006) |
+| `data_source` | `data_source` (migrasi 0006, sudah ada) |
+| `comprehension_test`, `tadabbur_note`, `grammar_progress` | Belum ada; buat dengan nama jamak (`comprehension_tests`, ...) |
 
 ### Paket kerja berikutnya (berurutan)
 
