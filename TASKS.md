@@ -33,7 +33,7 @@ Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 - [x] Dashboard target dan proyeksi (`/dashboard`)
 
 ## Berikutnya
-- [ ] F5 pembaca ayat interlinear (butuh arti kata penuh)
+- [x] F5 pembaca ayat interlinear (`/baca`)
 - [ ] F3 halaman akar + kuis pola; F4 unit nahwu-sharaf
 - [ ] F6 tes ayat dengan AI (butuh API key LLM di secret Edge Function)
 - [ ] M4 Pengingat: Web Push, Telegram, pg_cron
