@@ -6,6 +6,14 @@ import { getHomeStats } from "@/lib/server/stats";
 import { signOut } from "./actions";
 
 
+const MENU = [
+  { href: "/baca", label: "Baca", icon: "📖" },
+  { href: "/kuis", label: "Kuis", icon: "✏️" },
+  { href: "/kosakata", label: "Kata", icon: "🔤" },
+  { href: "/pola", label: "Pola", icon: "🧩" },
+  { href: "/dashboard", label: "Target", icon: "📈" },
+];
+
 export default function Home() {
   return (
     <Suspense fallback={<p className="p-8 text-sm opacity-60">Memuat...</p>}>
@@ -34,7 +42,6 @@ async function HomeContent() {
       <header className="flex items-start justify-between">
         <div>
           <h1 className="text-xl font-semibold">Belajar Bahasa Al-Qur&apos;an</h1>
-          <p className="text-sm opacity-60">Fase 1 · memahami kata dan kalimat</p>
         </div>
         <form action={signOut}>
           <button className="text-sm underline opacity-60">Keluar</button>
@@ -55,28 +62,18 @@ async function HomeContent() {
         </Link>
       </section>
 
-      <section className="grid grid-cols-2 gap-3">
-        <Link href="/kuis" className="rounded-2xl border border-current/15 p-4 text-sm">
-          <p className="font-medium">Kuis latihan</p>
-          <p className="mt-0.5 text-xs opacity-60">Ulang kata yang sudah dipelajari</p>
-        </Link>
-        <Link href="/dashboard" className="col-span-2 rounded-2xl border border-current/15 p-4 text-sm">
-          <p className="font-medium">Target Fase 1</p>
-          <p className="mt-0.5 text-xs opacity-60">On track atau tertinggal, proyeksi, dan grafik cakupan</p>
-        </Link>
-        <Link href="/kosakata" className="rounded-2xl border border-current/15 p-4 text-sm">
-          <p className="font-medium">Daftar kata</p>
-          <p className="mt-0.5 text-xs opacity-60">Lihat persen pemahaman tiap kata</p>
-        </Link>
-        <Link href="/pola" className="rounded-2xl border border-current/15 p-4 text-sm">
-          <p className="font-medium">Kuis pola kata</p>
-          <p className="mt-0.5 text-xs opacity-60">Madhi, mudhari&apos;, isim fa&apos;il, mashdar...</p>
-        </Link>
-        <Link href="/baca" className="rounded-2xl border border-current/15 p-4 text-sm">
-          <p className="font-medium">Baca ayat</p>
-          <p className="mt-0.5 text-xs opacity-60">Kata per kata dengan arti dan warna penguasaan</p>
-        </Link>
-      </section>
+      <nav className="grid grid-cols-5 gap-2">
+        {MENU.map((m) => (
+          <Link
+            key={m.href}
+            href={m.href}
+            className="flex flex-col items-center gap-1 rounded-2xl border border-current/15 py-3 text-xs font-medium active:bg-emerald-700/10"
+          >
+            <span className="text-2xl" aria-hidden>{m.icon}</span>
+            {m.label}
+          </Link>
+        ))}
+      </nav>
 
       <section className="grid grid-cols-2 gap-3">
         <Stat label="Streak" value={`${stats.streak} hari`} />
@@ -85,15 +82,15 @@ async function HomeContent() {
         <Stat label="Tingkat pemahaman" value={`${stats.comprehension.toFixed(0)}%`} />
       </section>
 
-      <section className="rounded-2xl border border-current/15 p-4 text-sm">
-        <p className="font-medium">Kondisi mastery gate</p>
+      <details className="rounded-2xl border border-current/15 p-4 text-sm">
+        <summary className="cursor-pointer font-medium">Kondisi mastery gate</summary>
         <ul className="mt-2 space-y-1 opacity-80">
           <li>Retensi 7 hari: {Math.round(plan.retention7d * 100)}%</li>
           <li>Review menunggu: {plan.backlog}</li>
           <li>Kata belum kokoh: {plan.learningPile}</li>
           <li>Kuota item baru hari ini: {plan.newQuota}</li>
         </ul>
-      </section>
+      </details>
     </main>
   );
 }

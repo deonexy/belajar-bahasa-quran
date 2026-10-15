@@ -131,6 +131,8 @@ Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
 
+- **2026-10-15 (Claude Sonnet 5.5):** beranda disederhanakan atas permintaan pemilik: menu 5 tombol ikon + label pendek tanpa deskripsi (Baca, Kuis, Kata, Pola, Target), detail mastery gate dilipat. Pemilik meminta menu simpel, mudah diakses, tanpa deskripsi; pertahankan gaya ini untuk menu baru. RLS `review_logs` append-only masih dibatalkan alat Supabase (drop policy); opsi: pemilik jalankan di SQL Editor atau `revoke update, delete`.
+
 - **2026-10-15 (Claude Sonnet 5.5):** F4: 8 pelajaran nahwu-sharaf baru (tasrif, isim isyarah, maushul, jumlah ismiyah/fi'liyah, idhafah, na't, i'rab dasar; seq 400-2500; sudah diterapkan ke DB beserta `items`). F3: `/akar/[root]` (lema sebaran satu akar, ditaut dari pembaca) dan `/pola` (kuis pola kata dari fitur PERF/IMPF/IMPV/ACT_PCPL/PASS_PCPL/VN; latihan bebas, skor TIDAK disimpan dan tidak memengaruhi gerbang). Batasan: tidak ada wazan isim di data, jadi kuis wazan isim belum ada. Isi pelajaran draf AI, perlu ditinjau pemilik/ustaz.
 
 - **2026-10-15 (Claude Sonnet 5.5):** F5 pembaca interlinear: `/baca` (daftar surah) dan `/baca/[surah]?hal=N` (10 ayat/halaman; query dibatasi per rentang ayat karena batas 1000 baris PostgREST). Kata diwarnai menurut level lemma pengguna, toggle sembunyikan arti/terjemah, ketuk kata → lemma, akar, ciri morfologi (`lib/morph-labels.ts`), tombol "Tambah ke review" (`app/baca/actions.ts`, idempoten, `priority=true`). Jebakan: tipe `PageProps<"/baca/[surah]">` baru ada setelah `npx next typegen`/build.
