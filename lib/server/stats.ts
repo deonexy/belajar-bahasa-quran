@@ -94,6 +94,7 @@ export async function getHomeStats(
     lemmasOpened: lemmaRows.length,
     comprehension: comprehension(withFreq),
     studiedToday: dayList.includes(today),
+    learnedTokens: withFreq.reduce((a, w) => a + w.freq, 0),
     avgMastery: lemmaUnder.length ? lemmaUnder.reduce((a, b) => a + b, 0) / lemmaUnder.length : 0,
     totalLemmas,
     learnedUniquePct: totalLemmas > 0 ? (lemmaRows.length / totalLemmas) * 100 : 0,

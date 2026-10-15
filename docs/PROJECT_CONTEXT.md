@@ -131,6 +131,8 @@ Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
 
+- **2026-10-16 (Claude Sonnet 5.5):** kartu "Kata Al-Qur'an dipahami" diganti "Kata dipelajari" (angka utama = jumlah lemma dibuka, supaya tidak nol dan memotivasi) + bar `TokenBar` (jumlah kemunculan kata/token dari lemma yang dibuka dibanding total kata Al-Qur'an). `getHomeStats` kini mengembalikan `learnedTokens`. Preferensi pemilik: dashboard sebaiknya memotivasi (dopamin), tampilkan capaian besar.
+
 - **2026-10-16 (Claude Sonnet 5.5):** RLS `review_logs` append-only ditandai PENDING di `TASKS.md` atas permintaan pemilik (belum paham, belum bisa akses Supabase sampai siang). Jangan diterapkan sebelum pemilik mengonfirmasi ulang.
 
 - **2026-10-16 (Claude Sonnet 5.5):** beranda lebih informatif atas permintaan pemilik. Streak berwarna 4 tingkat (`streakTier`: freeze=0, cold=belum belajar hari ini, warm 1-6, hot >=7). "Penguasaan kata" = rata-rata `understanding` semua lemma dibuka. "Kata Al-Qur'an dipahami" = lemma dibuka / total lemma unik (sub: dikuasai/total unik). "Tingkat pemahaman" kini indeks gabungan (`lib/engine/index-score.ts`): cakupan token dikuasai 40%, kekuatan ingatan (bobot frekuensi) 20%, retensi 7 hari 15%, tata bahasa 15% (pelajaran terhadap SEMUA pelajaran 70% + akurasi kuis pola 30 hari 30%), ayat 10% (penuh di 30 ayat). Komponen tanpa data dihitung 0. Migrasi baru `20261016000008_pola_attempts.sql` (sudah diterapkan): jawaban `/pola` kini disimpan. Catatan: `/dashboard` (snapshot F7) masih memakai definisi lama `comprehension`; selaraskan bila perlu.
