@@ -122,7 +122,7 @@ Checklist rinci ada di `TASKS.md`.
 Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabel spec ke repo ada di `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 
 1. ~~M3 penyelarasan + dashboard F7~~ selesai (kecuali RLS `review_logs`, butir 5 bagian 9).
-2. ~~Arti lemma sampai 700~~ selesai (draf; pemilik perlu meninjau). Berikutnya pembaca ayat interlinear (F5).
+2. ~~Arti lemma sampai 700~~ selesai (draf; pemilik perlu meninjau). ~~Pembaca interlinear F5~~ selesai (`/baca`).
 3. Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4).
 4. Tes pemahaman ayat dengan AI (F6): perlu API key LLM sebagai secret Edge Function (diisi pemilik).
 5. Nice-to-have N1-N7 (heatmap, prioritas surah, mode dengar, leech, jurnal, PWA/Telegram, ekspor).
@@ -130,6 +130,8 @@ Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabe
 Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/fa'il) **tidak ada** di sumber morfologi; yang ada: bentuk kata kerja (VF 1-10), partisip aktif/pasif, masdar, kasus (NOM/ACC/GEN), mood, person/gender/jumlah, keluarga partikel (إِنّ/كَان).
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
+
+- **2026-10-15 (Claude Sonnet 5.5):** F5 pembaca interlinear: `/baca` (daftar surah) dan `/baca/[surah]?hal=N` (10 ayat/halaman; query dibatasi per rentang ayat karena batas 1000 baris PostgREST). Kata diwarnai menurut level lemma pengguna, toggle sembunyikan arti/terjemah, ketuk kata → lemma, akar, ciri morfologi (`lib/morph-labels.ts`), tombol "Tambah ke review" (`app/baca/actions.ts`, idempoten, `priority=true`). Jebakan: tipe `PageProps<"/baca/[surah]">` baru ada setelah `npx next typegen`/build.
 
 - **2026-10-15 (Claude Sonnet 5.5):** menambah draf arti Indonesia lemma peringkat 321-700 (380 lemma, dicocokkan per `freq_rank` dan diperiksa terhadap daftar lemma), diterapkan ke DB (lemmas + words), cakupan token berarti ≈85,4%. Semua `reviewed=false`.
 
