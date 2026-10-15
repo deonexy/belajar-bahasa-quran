@@ -32,3 +32,8 @@ Teks ayat berasal dari edisi Hafs di atas, bukan berkas Tanzil. **Lisensi masing
 - Pelajaran: latihan dinilai benar bila >= 75% tepat; dijadwalkan FSRS seperti item lain.
 - Login hanya magic link, `shouldCreateUser: false`; akun pemilik dibuat manual di dashboard Supabase.
 - Next 16: `proxy.ts` (bukan middleware), `cacheComponents` aktif sehingga halaman dinamis dibungkus `<Suspense>`.
+
+## Autentikasi
+- Login diganti ke email + kata sandi dan Google OAuth; ada halaman `/register`. Tautan magic link dihapus karena memerlukan akun yang dibuat manual.
+- Pendaftaran terbuka; data tiap pengguna terisolasi oleh RLS (`user_id = auth.uid()`). Untuk menutup pendaftaran, matikan *Allow new users to sign up* di dashboard Supabase.
+- Google OAuth perlu diaktifkan di dashboard Supabase (Authentication → Providers → Google) dengan Client ID/Secret dari Google Cloud Console.
