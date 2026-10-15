@@ -1,0 +1,40 @@
+// Membuat ikon PWA dari SVG asli (buku terbuka di atas rehal + bintang). Jalankan: node scripts/gen_icons.mjs
+import sharp from "sharp";
+import { writeFileSync } from "node:fs";
+
+// safe = skala isi agar aman di mask lingkaran/squircle (maskable)
+const svg = (safe) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b6b4b"/><stop offset="1" stop-color="#064430"/></linearGradient>
+  <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff8e1"/><stop offset="1" stop-color="#f3e3b3"/></linearGradient>
+</defs>
+<rect width="512" height="512" fill="url(#bg)"/>
+<g transform="translate(256 256) scale(${safe}) translate(-256 -256)">
+  <!-- bintang 8 sudut -->
+  <g transform="translate(256 120)" fill="#e8c35a">
+    <rect x="-34" y="-34" width="68" height="68"/>
+    <rect x="-34" y="-34" width="68" height="68" transform="rotate(45)"/>
+  </g>
+  <circle cx="256" cy="120" r="14" fill="#064430"/>
+  <!-- rehal (penyangga) -->
+  <path d="M150 400 L256 322 L362 400 Z" fill="#b98a2e"/>
+  <path d="M130 410 H382" stroke="#e8c35a" stroke-width="14" stroke-linecap="round"/>
+  <!-- halaman kiri dan kanan -->
+  <path d="M256 330 C216 300 150 296 96 312 L96 214 C150 198 216 202 256 232 Z" fill="url(#pg)" stroke="#e8c35a" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M256 330 C296 300 362 296 416 312 L416 214 C362 198 296 202 256 232 Z" fill="url(#pg)" stroke="#e8c35a" stroke-width="8" stroke-linejoin="round"/>
+  <!-- garis teks -->
+  <g stroke="#0b6b4b" stroke-width="7" stroke-linecap="round" opacity=".75">
+    <path d="M124 240 C160 232 205 236 232 252"/><path d="M124 262 C160 254 205 258 232 274"/><path d="M124 284 C160 276 205 280 232 296"/>
+    <path d="M388 240 C352 232 307 236 280 252"/><path d="M388 262 C352 254 307 258 280 274"/><path d="M388 284 C352 276 307 280 280 296"/>
+  </g>
+  <path d="M256 232 V330" stroke="#e8c35a" stroke-width="8"/>
+</g></svg>`;
+
+writeFileSync("public/icons/icon.svg", svg(1));
+const png = (s, size, out) => sharp(Buffer.from(svg(s))).resize(size, size).png().toFile(out);
+await png(1, 192, "public/icons/icon-192.png");
+await png(1, 512, "public/icons/icon-512.png");
+await png(0.78, 512, "public/icons/icon-maskable-512.png");
+await png(1, 180, "app/apple-icon.png");
+await png(1, 64, "app/icon.png");
+console.log("ikon dibuat");
