@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { ensureDailyPlan, getSettings } from "@/lib/server/daily";
 import { getHomeStats } from "@/lib/server/stats";
+import { comprehensionIndex, streakTier, type StreakTier } from "@/lib/engine";
 import { signOut } from "./actions";
 
 
@@ -29,6 +30,14 @@ async function HomeContent() {
   const settings = await getSettings(supabase, user.id);
   const plan = await ensureDailyPlan(supabase, user.id, settings);
   const stats = await getHomeStats(supabase, user.id, settings.timezone);
+
+  const index = comprehensionIndex({
+    tokenCoverage: stats.coveragePct,
+    memoryStrength: stats.comprehension,
+    retention: stats.lemmasOpened > 0 ? plan.retention7d * 100 : 0,
+    grammar: stats.grammar,
+    ayat: stats.ayat,
+  });
 
   const { count: dueNow } = await supabase
     .from("user_items")
@@ -76,11 +85,21 @@ async function HomeContent() {
       </nav>
 
       <section className="grid grid-cols-2 gap-3">
-        <Stat label="Streak" value={`${stats.streak} hari`} />
-        <Stat label="Kata dikuasai" value={`${stats.lemmasMastered}`} sub={`${stats.lemmasOpened} sudah dibuka`} />
-        <Stat label="Kata Al-Qur'an dipahami" value={`${stats.coveragePct.toFixed(1)}%`} />
-        <Stat label="Tingkat pemahaman" value={`${stats.comprehension.toFixed(0)}%`} />
+        <StreakCard streak={stats.streak} studiedToday={stats.studiedToday} />
+        <Stat
+          label="Penguasaan kata"
+          value={`${stats.avgMastery.toFixed(0)}%`}
+          sub={`rata-rata · ${stats.lemmasMastered} dikuasai dari ${stats.lemmasOpened} dibuka`}
+        />
+        <Stat
+          wide
+          label="Kata Al-Qur'an dipahami"
+          value={`${stats.learnedUniquePct.toFixed(1)}%`}
+          sub={`${stats.lemmasMastered}/${stats.totalLemmas} kata unik dikuasai`}
+        />
       </section>
+
+      <IndexCard index={index} />
 
       <details className="rounded-2xl border border-current/15 p-4 text-sm">
         <summary className="cursor-pointer font-medium">Kondisi mastery gate</summary>
@@ -95,12 +114,77 @@ async function HomeContent() {
   );
 }
 
-function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function Stat({ label, value, sub, wide }: { label: string; value: string; sub?: string; wide?: boolean }) {
   return (
-    <div className="rounded-2xl border border-current/15 p-4">
+    <div className={`rounded-2xl border border-current/15 p-4 ${wide ? "col-span-2" : ""}`}>
       <p className="text-xs opacity-60">{label}</p>
       <p className="mt-1 text-2xl font-semibold">{value}</p>
       {sub && <p className="text-xs opacity-60">{sub}</p>}
     </div>
+  );
+}
+
+const TIER: Record<StreakTier, { icon: string; box: string; text: string; note: string }> = {
+  hot: {
+    icon: "🔥",
+    box: "border-red-500/50 bg-gradient-to-br from-red-600/30 to-orange-500/20",
+    text: "text-red-500 dark:text-orange-300",
+    note: "Membara! Pertahankan",
+  },
+  warm: {
+    icon: "🔥",
+    box: "border-orange-400/50 bg-orange-500/15",
+    text: "text-orange-600 dark:text-orange-300",
+    note: "Hangat, terus lanjut",
+  },
+  cold: {
+    icon: "🥶",
+    box: "border-sky-500/40 bg-slate-500/15",
+    text: "text-sky-700 dark:text-sky-300",
+    note: "Belajar hari ini agar tidak putus",
+  },
+  freeze: {
+    icon: "❄️",
+    box: "border-cyan-400/50 bg-cyan-400/15",
+    text: "text-cyan-700 dark:text-cyan-300",
+    note: "Beku, mulai lagi hari ini",
+  },
+};
+
+function StreakCard({ streak, studiedToday }: { streak: number; studiedToday: boolean }) {
+  const t = TIER[streakTier(streak, studiedToday)];
+  return (
+    <div className={`rounded-2xl border p-4 ${t.box}`}>
+      <p className="text-xs opacity-70">Streak</p>
+      <p className={`mt-1 text-2xl font-semibold ${t.text}`}>
+        <span aria-hidden>{t.icon}</span> {streak} hari
+      </p>
+      <p className="text-xs opacity-70">{t.note}</p>
+    </div>
+  );
+}
+
+function IndexCard({ index }: { index: ReturnType<typeof comprehensionIndex> }) {
+  return (
+    <details className="rounded-2xl border border-current/15 p-4">
+      <summary className="cursor-pointer list-none">
+        <p className="text-xs opacity-60">Tingkat pemahaman</p>
+        <p className="mt-1 text-3xl font-semibold">{index.score.toFixed(1)}%</p>
+        <p className="text-xs opacity-60">gabungan 5 parameter · ketuk untuk rincian</p>
+      </summary>
+      <ul className="mt-3 space-y-2 text-xs">
+        {index.parts.map((p) => (
+          <li key={p.key}>
+            <div className="flex justify-between">
+              <span>{p.label} <span className="opacity-50">({Math.round(p.weight * 100)}%)</span></span>
+              <span>{p.value.toFixed(0)}%</span>
+            </div>
+            <div className="mt-1 h-1.5 rounded bg-black/10 dark:bg-white/15">
+              <div className="h-1.5 rounded bg-emerald-600" style={{ width: `${p.value}%` }} />
+            </div>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

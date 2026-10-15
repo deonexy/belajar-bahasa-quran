@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { comprehension, type UserItemWithFreq, type FsrsCardJson } from "@/lib/engine";
+import {
+  ayatScore,
+  comprehension,
+  grammarScore,
+  understanding,
+  type UserItemWithFreq,
+  type FsrsCardJson,
+} from "@/lib/engine";
 import { localDate } from "./daily";
 import { fetchLemmas } from "./lemmas";
 
@@ -22,7 +29,8 @@ export async function getHomeStats(
   userId: string,
   tz: string,
 ) {
-  const [{ data: days }, { data: cov }, { data: totals }, { data: ui }] =
+  const since30 = new Date(Date.now() - 30 * 86400_000).toISOString();
+  const [{ data: days }, { data: cov }, { data: totals }, { data: ui }, lessonCount, polaRows] =
     await Promise.all([
       supabase.rpc("review_days", { p_tz: tz }),
       supabase.from("v_user_coverage").select("*").eq("user_id", userId).maybeSingle(),
@@ -31,6 +39,8 @@ export async function getHomeStats(
         .from("user_items")
         .select("level,status,fsrs,items!inner(kind,ref_id)")
         .eq("user_id", userId),
+      supabase.from("items").select("id", { count: "exact", head: true }).eq("kind", "lesson"),
+      supabase.from("pola_attempts").select("correct").eq("user_id", userId).gte("answered_at", since30),
     ]);
 
   const dayList = ((days ?? []) as unknown as (string | Record<string, string>)[]).map(
@@ -64,6 +74,18 @@ export async function getHomeStats(
     freq: freqById.get(r.item.ref_id) ?? 0,
   }));
 
+  const underOf = (r: Row) => understanding(r.level, r.fsrs.stability);
+  const rowsOfKind = (k: string) =>
+    rows.filter((r) => (Array.isArray(r.items) ? r.items[0] : r.items).kind === k);
+  const lessonUnder = rowsOfKind("lesson").map(underOf);
+  const ayatUnder = rowsOfKind("ayah").map(underOf);
+  const polaList = (polaRows.data ?? []) as { correct: boolean }[];
+  const polaCorrect = polaList.filter((p) => p.correct).length;
+  const totalLessons = lessonCount.count ?? 0;
+  const lemmaUnder = lemmaRows.map(underOf);
+  const totalLemmas = Number(totals?.find((t) => t.key === "quran_total_lemmas")?.value ?? 0);
+  const today = localDate(tz, new Date());
+
   const totalWords = Number(totals?.find((t) => t.key === "quran_total_words")?.value ?? 0);
   return {
     streak: computeStreak(dayList, tz),
@@ -71,6 +93,14 @@ export async function getHomeStats(
     lemmasMastered: Number(cov?.lemmas_mastered ?? 0),
     lemmasOpened: lemmaRows.length,
     comprehension: comprehension(withFreq),
+    studiedToday: dayList.includes(today),
+    avgMastery: lemmaUnder.length ? lemmaUnder.reduce((a, b) => a + b, 0) / lemmaUnder.length : 0,
+    totalLemmas,
+    learnedUniquePct: totalLemmas > 0 ? (lemmaRows.length / totalLemmas) * 100 : 0,
+    grammar: grammarScore(lessonUnder, totalLessons, polaCorrect, polaList.length),
+    grammarDetail: { lessonsOpened: lessonUnder.length, totalLessons, polaCorrect, polaTotal: polaList.length },
+    ayat: ayatScore(ayatUnder),
+    ayatOpened: ayatUnder.length,
     totalWords,
   };
 }
