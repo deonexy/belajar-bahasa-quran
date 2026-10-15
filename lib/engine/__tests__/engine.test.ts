@@ -12,6 +12,11 @@ import {
   ratingFromSelfGrade,
   retentionOrDefault,
   understanding,
+  isRetained,
+  isCurrentlyMastered,
+  weeklyRate,
+  projectCompletion,
+  defaultDeadline,
   scheduleReview,
   type Item,
   type UserItem,
@@ -248,5 +253,68 @@ describe("understanding", () => {
     expect(understanding(3, 10.5)).toBeCloseTo(50);
     expect(understanding(1, 21)).toBeCloseTo(100 / 3);
     expect(understanding(9, -5)).toBe(0);
+  });
+});
+
+describe("gerbang: perkiraan 7 hari", () => {
+  it("kuota 0 bila perkiraan review 7 hari melebihi 7 x batas", () => {
+    const r = computeQuota({ R: 0.95, B: 10, L: 0, N: 5, B7: 1100, reviewLimit: 150 });
+    expect(r.quota).toBe(0);
+    expect(r.reason).toContain("1100");
+  });
+  it("tidak memengaruhi bila di bawah batas atau tidak diberikan", () => {
+    expect(computeQuota({ R: 0.95, B: 10, L: 0, N: 5, B7: 1050, reviewLimit: 150 }).quota).toBe(5);
+    expect(computeQuota({ R: 0.95, B: 10, L: 0, N: 5 }).quota).toBe(5);
+  });
+});
+
+describe("dikuasai: masih terjaga (R >= 0,9)", () => {
+  const card = (lastReview: string, stability: number) => ({
+    stability,
+    last_review: lastReview,
+  });
+  it("terjaga selama hari sejak review <= stabilitas", () => {
+    const now = new Date("2026-11-30T00:00:00Z");
+    expect(isRetained(card("2026-11-10T00:00:00Z", 21), now)).toBe(true);
+    expect(isRetained(card("2026-11-01T00:00:00Z", 21), now)).toBe(false);
+    expect(isRetained({ stability: 30 }, now)).toBe(false);
+  });
+  it("dikuasai butuh kriteria tersimpan dan terjaga", () => {
+    const now = new Date("2026-12-01T00:00:00Z");
+    const fresh = userItem({ stability: 30 });
+    fresh.fsrs.last_review = "2026-11-25T00:00:00Z";
+    expect(isCurrentlyMastered(fresh, 0, now)).toBe(true);
+    expect(isCurrentlyMastered(fresh, 1, now)).toBe(false);
+    fresh.fsrs.last_review = "2026-10-01T00:00:00Z";
+    expect(isCurrentlyMastered(fresh, 0, now)).toBe(false);
+  });
+});
+
+describe("proyeksi", () => {
+  const pts = [0, 7, 14, 21, 28].map((d, i) => ({
+    date: new Date(Date.UTC(2026, 10, 1 + d)).toISOString().slice(0, 10),
+    coverage: i * 2,
+  }));
+  it("laju mingguan dari regresi linear", () => {
+    expect(weeklyRate(pts)).toBeCloseTo(2);
+    expect(weeklyRate([pts[0]])).toBeNull();
+  });
+  it("on track bila proyeksi sebelum tenggat", () => {
+    const r = projectCompletion({ coverageNow: 8, target: 85, ratePerWeek: 2, today: "2026-11-29", deadline: "2028-11-01" });
+    expect(r.kind).toBe("on_track");
+  });
+  it("tertinggal X minggu bila proyeksi lewat tenggat", () => {
+    const r = projectCompletion({ coverageNow: 8, target: 85, ratePerWeek: 0.5, today: "2026-11-29", deadline: "2028-11-01" });
+    expect(r.kind).toBe("behind");
+    if (r.kind === "behind") expect(r.weeksBehind).toBeGreaterThan(0);
+  });
+  it("kasus tepi", () => {
+    const base = { target: 85, today: "2026-11-29", deadline: "2028-11-01" };
+    expect(projectCompletion({ ...base, coverageNow: 90, ratePerWeek: 1 }).kind).toBe("reached");
+    expect(projectCompletion({ ...base, coverageNow: 10, ratePerWeek: null }).kind).toBe("no_data");
+    expect(projectCompletion({ ...base, coverageNow: 10, ratePerWeek: 0 }).kind).toBe("stalled");
+  });
+  it("tenggat default 24 bulan", () => {
+    expect(defaultDeadline("2026-10-15")).toBe("2028-10-15");
   });
 });

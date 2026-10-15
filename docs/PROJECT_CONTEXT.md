@@ -62,7 +62,8 @@ Struktur penting:
 
 - **Konten (read-only untuk klien):** `corpus_meta`, `roots`, `lemmas` (kunci unik `(lemma_ar, pos)`), `ayahs`, `words` (`morph` jsonb berisi segmen + fitur), `lessons`, `items` (`kind`: lemma/lesson/ayah/..., `ref_id`, `seq`, `prereq_item_ids`).
 - **Pengguna (RLS `user_id = auth.uid()`):** `user_settings`, `user_items` (level 0-3, `fsrs` jsonb, `status`, `due_at`), `review_logs` (`client_id` unik untuk idempotensi), `daily_plans`, `daily_stats`, `push_subscriptions`, `ai_usage`. View `v_user_coverage`.
-- **Fungsi RPC (security invoker):** `review_days`, `new_item_candidates`, `openable_ayah_items`.
+- **Fungsi RPC (security invoker):** `review_days`, `new_item_candidates`, `openable_ayah_items`, `take_daily_snapshot(user, date)`, `lemmas_needed_for_target(target)`, `reviews_due_within(days)`.
+- **M3 (migrasi 0006):** `data_source` (audit sumber/lisensi), kolom target di `user_settings` (`target_token_coverage`, `target_test_accuracy`, `daily_review_limit`, `phase1_deadline`), `daily_stats` dipakai sebagai snapshot harian (+`roots_mastered`, `test_accuracy_4w`), `pg_cron` job `daily-snapshot` (00.05 WIB, snapshot penutup hari kemarin), view `v_user_coverage` hanya menghitung lemma yang masih terjaga.
 - Data terimpor (terverifikasi): 77.429 kata, 4.815 lemma, 6.236 ayat, 1.651 akar, 11.054 item. 320 lemma punya `gloss_id` (≈75% token).
 - Nama tabel berbeda dari `docs/SPEC_FASE1.md` (spec: `root/lemma/verse/token/card`). **Keputusan: tidak mengganti nama**, tambahkan tabel yang belum ada.
 
@@ -70,9 +71,9 @@ Struktur penting:
 
 - **Rating:** otomatis dari jawaban pilihan ganda: salah=1; benar >10 dtk=2; 3-10 dtk=3; <3 dtk=4. Terjemah ayat: penilaian mandiri benar/sebagian/salah.
 - **Level 0-3:** naik bila rating ≥3, turun bila 1 (tidak di bawah 1 setelah pernah mencapai 1). Latihan: level 0 recognize, 1 recall, 2 context, 3 acak 20/30/50.
-- **Dikuasai:** level 3 dan stabilitas FSRS ≥21 hari dan tanpa lapse 30 hari.
+- **Dikuasai:** level 3 dan stabilitas FSRS ≥21 hari dan tanpa lapse 30 hari (status tersimpan), DAN masih terjaga: R ≥ 0,9, setara hari-sejak-review ≤ stabilitas (`isRetained`). Cakupan, snapshot, dan dashboard hanya menghitung yang terjaga; status tersimpan tidak berubah sendiri.
 - **Pemahaman per kata (%):** `(level/3) × min(1, stabilitas/21) × 100` (`understanding()`).
-- **Mastery gate harian** (`computeQuota`): R = akurasi benar/salah 7 hari (default 0,90 bila <20 jawaban); B = backlog jatuh tempo; L = item level<2. B>100 atau R<0,8 → kuota 0; 0,8-0,85 → maks 2; 0,85-0,9 → maks 3; ≥0,9 → maks N (default 5); dikurangi `max(0, L-20)`.
+- **Mastery gate harian** (`computeQuota`): R = akurasi benar/salah 7 hari (default 0,90 bila <20 jawaban); B = backlog jatuh tempo; L = item level<2. B>100 atau R<0,8 → kuota 0; 0,8-0,85 → maks 2; 0,85-0,9 → maks 3; ≥0,9 → maks N (default 5); dikurangi `max(0, L-20)`. Tambahan M3: bila perkiraan review 7 hari (`B7`) > 7 × `daily_review_limit` (default 150) kuota 0.
 - **Item baru:** hanya lemma yang punya `gloss_id` dan pelajaran; ayat terbuka otomatis bila ≥85% kata berlemma sudah dikuasai (maks 3/hari).
 - **Cakupan:** jumlah `freq` lemma dikuasai / total kata Al-Qur'an (77.429).
 - **Kuis** (`/kuis`): 10 soal acak berbobot dari kata yang pernah dijawab; memakai `submitReview` yang sama sehingga memengaruhi level dan jadwal.
@@ -81,7 +82,7 @@ Struktur penting:
 
 Selesai dan terdeploy: fondasi, korpus, engine + 51 tes, auth (email/sandi + Google + register), beranda, sesi belajar, tombol salin ayat pada contoh kata, daftar kosakata dengan persen pemahaman, kuis dinamis.
 
-Belum diuji dengan akun pengguna asli secara end-to-end (login hingga satu sesi penuh). Lakukan ini sebelum menganggap alur stabil.
+Pemilik sudah memakai aplikasi dengan akun asli (15 Okt 2026: 6 item, 14 review, retensi 93%), jadi alur login → sesi belajar terbukti jalan. M3 dan dashboard F7 (`/dashboard`) selesai.
 
 Checklist rinci ada di `TASKS.md`.
 
@@ -106,19 +107,19 @@ Checklist rinci ada di `TASKS.md`.
 - Commit/PR dari agen Claude memakai trailer atribusi yang diminta sesi (Co-Authored-By dan Claude-Session).
 - Perubahan skema = file baru di `supabase/migrations/` (nomor berurutan) + diterapkan ke proyek + dicatat di bagian 4.
 
-## 9. Keputusan terbuka (butuh jawaban pemilik)
+## 9. Keputusan (diambil Claude atas perintah "eksekusi TASKS.md", 15 Okt 2026; pemilik boleh mengubah)
 
-Hasil review `docs/SPEC_FASE1.md` terhadap aplikasi (15 Okt 2026):
-1. **Rumus gerbang F2 tidak konsisten:** materi baru butuh akurasi 7 hari ≥85%, tapi kuota dipotong 50% saat <80% (tidak pernah tercapai). Pilih ambang yang berlaku. Saat ini memakai ambang bertahap (bagian 5).
-2. **Definisi "dikuasai":** spec = retrievability ≥0,9 dan stabilitas ≥21 hari (dinamis); aplikasi = level 3 + stabilitas ≥21 + tanpa lapse 30 hari. Usulan: gabungkan.
-3. **Default kuota baru:** spec 10/hari, aplikasi 5/hari. Data: 676 lemma teratas = 85% token, 455 = 80%, 1.080 = 90%; target 85% hanya butuh <1 lemma/hari.
-4. **Penilaian jawaban:** pilihan ganda (rating otomatis) vs 4 tombol Lupa/Sulit/Bisa/Mudah, atau dua mode.
-5. **`review_log` harus append-only** (RLS saat ini mengizinkan semua operasi): perbaikan disetujui secara prinsip, belum dikerjakan.
-6. Lisensi: QAC (GPL), Quran.com API (terjemah per kata, audio), atribusi Tanzil/mirror. Cek sebelum repo dibuat publik.
+1. **Gerbang F2:** rumus spec kontradiktif, jadi dipakai ambang bertahap yang sudah ada + batas perkiraan review 7 hari (B7 > 7×150 → kuota 0). Syarat "review hari ini = 0" tidak dipakai: item baru dibuka saat rencana harian dibuat. Mengubahnya = ubah `computeQuota`/`ensureDailyPlan`.
+2. **Dikuasai:** gabungan: kriteria tersimpan (level 3, S≥21, tanpa lapse 30 hari) DAN R≥0,9 (lihat bagian 5).
+3. **Kuota baru default 5/hari** (spec 10). Data: 676 lemma = 85% token; target 85% <1 lemma/hari. Bisa diubah di `user_settings.daily_new_max`.
+4. **Penilaian jawaban:** tetap pilihan ganda dengan rating otomatis (belum ada mode 4 tombol). Terbuka.
+5. **`review_logs` append-only: MENUNGGU PERSETUJUAN PEMILIK.** Penerapannya (menghapus policy RLS lama) dibatalkan oleh sistem saat dijalankan, file ada di `supabase/pending/20261015000007_review_logs_append_only.sql`. Terapkan setelah pemilik setuju, lalu pindahkan ke `supabase/migrations/`.
+6. **Lisensi** QAC (GPL), Quran.com API, atribusi Tanzil/mirror: belum dicek (tercatat di tabel `data_source`).
+7. **Ambang lulus pelajaran** dinaikkan ke 80% (spec F4).
 
 ## 10. Langkah berikutnya (usulan urutan)
 
-1. **M3 penyelarasan:** putuskan butir 1-2 di atas; RLS `review_logs` append-only; tabel `data_source`, `daily_snapshot` + `pg_cron`, target di `user_settings`; dashboard target dan proyeksi (F7 awal).
+1. ~~M3 penyelarasan + dashboard F7~~ selesai (kecuali RLS `review_logs`, butir 5 bagian 9).
 2. Lengkapi arti Indonesia lemma (draf AI → tinjau pemilik via `content/glosses_id.tsv`), lalu pembaca ayat interlinear (F5).
 3. Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4).
 4. Tes pemahaman ayat dengan AI (F6): perlu API key LLM sebagai secret Edge Function (diisi pemilik).

@@ -42,3 +42,9 @@ Teks ayat berasal dari edisi Hafs di atas, bukan berkas Tanzil. **Lisensi masing
 - Persen pemahaman per kata = (level/3) x min(1, stabilitas/21 hari) x 100 (`understanding()` di engine, dipakai juga oleh tingkat pemahaman global).
 - `/kosakata`: daftar lemma yang sudah dibuka beserta persen, level, status, dan jadwal ulang; bisa dicari, difilter, dan diurutkan.
 - `/kuis`: 10 soal dibangun ulang tiap dibuka dari kata yang sudah pernah dijawab. Pemilihan acak berbobot: pemahaman rendah dan jatuh tempo lebih sering muncul. Jawaban memakai `submitReview` yang sama dengan sesi belajar, sehingga level dan jadwal FSRS ikut naik/turun; ringkasan menampilkan perubahan persen per kata.
+
+## M3 dan dashboard
+- Dikuasai = kriteria tersimpan + R >= 0,9. Pada retensi target 0,9, FSRS memberi R = 0,9 tepat saat hari-sejak-review = stabilitas, sehingga R >= 0,9 dihitung sebagai `elapsed <= S` (SQL dan `isRetained`). Bila `target_retention` diubah dari 0,9 hitungan ini menjadi aproksimasi.
+- `daily_stats` dipakai sebagai snapshot harian (tidak membuat tabel `daily_snapshot` terpisah). Cron mengambil snapshot penutup hari kemarin; halaman dashboard memperbarui titik hari ini.
+- Proyeksi: regresi linear cakupan 28 hari terakhir; ditampilkan bersama sisa lemma yang dibutuhkan karena kurva cakupan melambat.
+- Target "lemma dikuasai" ditampilkan sebagai perkiraan (dikuasai + sisa lemma untuk target cakupan); target "akar dikuasai" menunggu data kurikulum.

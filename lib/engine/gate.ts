@@ -7,7 +7,13 @@ export interface GateInput {
   L: number;
   /** Kuota maksimum harian dari pengaturan. */
   N: number;
+  /** Perkiraan review 7 hari ke depan (item jatuh tempo). Opsional. */
+  B7?: number;
+  /** Batas review harian (default 150). Dipakai bersama B7: B7 > 7 x batas => kuota 0. */
+  reviewLimit?: number;
 }
+
+export const DEFAULT_REVIEW_LIMIT = 150;
 
 export interface GateResult {
   quota: number;
@@ -26,7 +32,14 @@ export function retentionOrDefault(correct: number, total: number): number {
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 /** Mastery gate: kuota item baru harian (SPEC 6.5). */
-export function computeQuota({ R, B, L, N }: GateInput): GateResult {
+export function computeQuota({ R, B, L, N, B7, reviewLimit }: GateInput): GateResult {
+  const limit7 = 7 * (reviewLimit ?? DEFAULT_REVIEW_LIMIT);
+  if (B7 !== undefined && B7 > limit7) {
+    return {
+      quota: 0,
+      reason: `Perkiraan ${B7} review dalam 7 hari melebihi batas ${limit7}, hari ini fokus mengulang.`,
+    };
+  }
   if (B > 100) {
     return {
       quota: 0,

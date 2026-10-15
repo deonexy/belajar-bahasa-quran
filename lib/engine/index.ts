@@ -5,3 +5,4 @@ export * from "./mastery";
 export * from "./gate";
 export * from "./selection";
 export * from "./coverage";
+export * from "./projection";

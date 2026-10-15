@@ -11,7 +11,14 @@ export interface Settings {
   timezone: string;
   daily_new_max: number;
   target_retention: number;
+  target_token_coverage: number;
+  daily_review_limit: number;
+  start_date: string;
+  phase1_deadline: string | null;
 }
+
+const SETTINGS_COLUMNS =
+  "timezone,daily_new_max,target_retention,target_token_coverage,daily_review_limit,start_date,phase1_deadline";
 
 export interface Plan {
   planDate: string;
@@ -49,18 +56,39 @@ export async function getSettings(
 ): Promise<Settings> {
   const { data } = await supabase
     .from("user_settings")
-    .select("timezone,daily_new_max,target_retention")
+    .select(SETTINGS_COLUMNS)
     .eq("user_id", userId)
     .maybeSingle();
-  if (data) {
-    return {
-      timezone: data.timezone,
-      daily_new_max: data.daily_new_max,
-      target_retention: Number(data.target_retention),
-    };
-  }
+  if (data) return rowToSettings(data);
   await supabase.from("user_settings").upsert({ user_id: userId });
-  return { timezone: "Asia/Jakarta", daily_new_max: 5, target_retention: 0.9 };
+  const { data: created } = await supabase
+    .from("user_settings")
+    .select(SETTINGS_COLUMNS)
+    .eq("user_id", userId)
+    .maybeSingle();
+  return created
+    ? rowToSettings(created)
+    : {
+        timezone: "Asia/Jakarta",
+        daily_new_max: 5,
+        target_retention: 0.9,
+        target_token_coverage: 0.85,
+        daily_review_limit: 150,
+        start_date: localDate("Asia/Jakarta"),
+        phase1_deadline: null,
+      };
+}
+
+function rowToSettings(r: Record<string, unknown>): Settings {
+  return {
+    timezone: String(r.timezone),
+    daily_new_max: Number(r.daily_new_max),
+    target_retention: Number(r.target_retention),
+    target_token_coverage: Number(r.target_token_coverage),
+    daily_review_limit: Number(r.daily_review_limit),
+    start_date: String(r.start_date),
+    phase1_deadline: r.phase1_deadline ? String(r.phase1_deadline) : null,
+  };
 }
 
 /**
@@ -107,11 +135,15 @@ export async function ensureDailyPlan(
     .neq("status", "suspended")
     .lt("level", 2);
 
+  const { data: due7 } = await supabase.rpc("reviews_due_within", { p_days: 7 });
+
   const gate = computeQuota({
     R,
     B: backlog ?? 0,
     L: pile ?? 0,
     N: settings.daily_new_max,
+    B7: typeof due7 === "number" ? due7 : undefined,
+    reviewLimit: settings.daily_review_limit,
   });
 
   const opened = await openNewItems(supabase, userId, gate.quota);
