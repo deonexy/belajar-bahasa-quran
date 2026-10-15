@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { generatePolaQuiz, recordPolaAnswer, type PolaQuestion } from "./actions";
+import { generatePolaQuiz, type PolaQuestion } from "./actions";
+import { recordPola } from "@/lib/local/runtime";
 
 export default function PolaQuiz() {
   const [qs, setQs] = useState<PolaQuestion[] | null>(null);
@@ -52,7 +53,7 @@ export default function PolaQuiz() {
               onClick={() => {
                 setPicked(k);
                 if (k === q.answer) setScore((s) => s + 1);
-                void recordPolaAnswer(q.category, k === q.answer);
+                void recordPola(q.category, k === q.answer);
               }}
               className={`rounded-xl border border-black/15 px-3 py-2 text-left dark:border-white/25 ${state}`}
             >

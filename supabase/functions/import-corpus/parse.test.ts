@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
@@ -68,7 +68,12 @@ describe("parseMorphology (contoh kecil)", () => {
 // Tes terhadap data nyata; dilewati bila data mentah belum diunduh.
 const RAW = path.resolve(__dirname, "../../../data/raw/qac/quran-morphology.txt");
 describe.skipIf(!existsSync(RAW))("korpus QAC lengkap", () => {
-  const c = parseMorphology(readFileSync(RAW, "utf8"));
+  // Dibaca di beforeAll: isi describe tetap dijalankan saat suite dilewati, sehingga
+  // membaca file di sini membuat seluruh berkas gagal bila data mentah tidak ada (mis. di CI).
+  let c: ReturnType<typeof parseMorphology>;
+  beforeAll(() => {
+    c = parseMorphology(readFileSync(RAW, "utf8"));
+  });
 
   it("lolos semua validasi keutuhan", () => {
     expect(validateCorpus(c)).toEqual([]);

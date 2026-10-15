@@ -2,40 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getSettings, localDate } from "@/lib/server/daily";
-import {
-  deriveRating,
-  isMastered,
-  nextLevel,
-  ratingFromSelfGrade,
-  scheduleReview,
-  understanding,
-  type ExerciseType,
-  type FsrsCardJson,
-  type ItemStatus,
-} from "@/lib/engine";
-
-export interface ReviewInput {
-  clientId: string;
-  itemId: number;
-  exercise: ExerciseType;
-  /** Latihan pilihan ganda. */
-  correct?: boolean;
-  /** Latihan terjemah: penilaian mandiri. */
-  grade?: "benar" | "sebagian" | "salah";
-  responseMs: number;
-}
-
-export interface ReviewResult {
-  ok: boolean;
-  level?: number;
-  status?: ItemStatus;
-  nextDue?: string;
-  /** Pemahaman item (0-100) sebelum dan sesudah jawaban ini. */
-  before?: number;
-  after?: number;
-  error?: string;
-}
+import type { ReviewInput, ReviewResult, SessionCard } from "@/lib/session-types";
+import { ensureDailyPlan, getSettings, localDate } from "@/lib/server/daily";
+import { buildQuiz, buildSession } from "@/lib/server/session";
+import { applyReview, type FsrsCardJson } from "@/lib/engine";
 
 export async function submitReview(input: ReviewInput): Promise<ReviewResult> {
   const supabase = await createClient();
@@ -55,16 +25,7 @@ export async function submitReview(input: ReviewInput): Promise<ReviewResult> {
   const now = new Date();
   const card = ui.fsrs as FsrsCardJson;
 
-  const rating = input.grade
-    ? ratingFromSelfGrade(input.grade)
-    : deriveRating({ correct: !!input.correct, responseMs: input.responseMs });
-  const correct = rating >= 2;
-
-  const levelAfter = nextLevel(ui.level, rating, ui.ever_reached_one);
-  const everReached = ui.ever_reached_one || levelAfter >= 1;
-  const fsrsAfter = scheduleReview(card, rating, now, settings.target_retention);
-
-  // Lapse 30 hari (termasuk jawaban ini bila salah)
+  // Lapse 30 hari sebelum jawaban ini
   const since = new Date(Date.now() - 30 * 86400_000).toISOString();
   const { count: prior } = await supabase
     .from("review_logs")
@@ -73,26 +34,29 @@ export async function submitReview(input: ReviewInput): Promise<ReviewResult> {
     .eq("item_id", input.itemId)
     .eq("rating", 1)
     .gte("reviewed_at", since);
-  const lapses30 = (prior ?? 0) + (rating === 1 ? 1 : 0);
 
-  const mastered = isMastered(
-    {
-      itemId: input.itemId,
-      kind: "lemma",
+  const res = applyReview({
+    itemId: input.itemId,
+    state: {
+      level: ui.level,
+      everReachedOne: ui.ever_reached_one,
       status: ui.status,
-      level: levelAfter,
-      fsrs: fsrsAfter,
-      dueAt: fsrsAfter.due,
+      fsrs: card,
       priority: ui.priority,
-      everReachedOne: everReached,
+      masteredAt: ui.mastered_at,
     },
-    lapses30,
-  );
-  const status: ItemStatus = mastered
-    ? "mastered"
-    : levelAfter >= 2
-      ? "review"
-      : "learning";
+    correct: input.correct,
+    grade: input.grade,
+    responseMs: input.responseMs,
+    retention: settings.target_retention,
+    priorLapses30: prior ?? 0,
+    now,
+  });
+  const { rating, correct, next } = res;
+  const levelAfter = next.level;
+  const everReached = next.everReachedOne;
+  const fsrsAfter = next.fsrs;
+  const status = next.status;
 
   const { error: logErr } = await supabase.from("review_logs").insert({
     user_id: userId,
@@ -121,7 +85,7 @@ export async function submitReview(input: ReviewInput): Promise<ReviewResult> {
       status,
       fsrs: fsrsAfter,
       due_at: fsrsAfter.due,
-      mastered_at: mastered ? (ui.mastered_at ?? now.toISOString()) : null,
+      mastered_at: next.masteredAt,
     })
     .eq("user_id", userId)
     .eq("item_id", input.itemId);
@@ -132,8 +96,8 @@ export async function submitReview(input: ReviewInput): Promise<ReviewResult> {
     level: levelAfter,
     status,
     nextDue: fsrsAfter.due,
-    before: understanding(ui.level, card.stability),
-    after: understanding(levelAfter, fsrsAfter.stability),
+    before: res.before,
+    after: res.after,
   };
 }
 
@@ -148,4 +112,30 @@ export async function finishSession(): Promise<void> {
     .eq("user_id", auth.user.id)
     .eq("plan_date", localDate(settings.timezone));
   revalidatePath("/");
+}
+
+/**
+ * Menyusun rencana hari ini dan membuka item baru sesuai mastery gate (tetap di server).
+ * Dipanggil klien sebelum sinkron agar item baru ikut tertarik ke salinan lokal.
+ */
+export async function ensureToday(): Promise<{ ok: boolean }> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return { ok: false };
+  const settings = await getSettings(supabase, auth.user.id);
+  await ensureDailyPlan(supabase, auth.user.id, settings);
+  return { ok: true };
+}
+
+/**
+ * Cadangan bila penyimpanan lokal browser tidak tersedia: sesi dibangun di server seperti semula.
+ */
+export async function loadServerCards(mode: "belajar" | "kuis"): Promise<SessionCard[]> {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return [];
+  if (mode === "kuis") return buildQuiz(supabase, auth.user.id, 10);
+  const settings = await getSettings(supabase, auth.user.id);
+  await ensureDailyPlan(supabase, auth.user.id, settings);
+  return buildSession(supabase, auth.user.id);
 }

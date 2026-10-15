@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { localDate } from "@/lib/dates";
 import {
   computeQuota,
   newCard,
@@ -30,10 +31,7 @@ export interface Plan {
   sessionDone: boolean;
 }
 
-/** Tanggal lokal (YYYY-MM-DD) pada zona waktu tertentu. */
-export function localDate(tz: string, d = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(d);
-}
+export { localDate };
 
 /** Awal hari berikutnya (UTC ISO) pada zona waktu: batas "jatuh tempo hari ini". */
 function endOfLocalDayIso(tz: string): string {

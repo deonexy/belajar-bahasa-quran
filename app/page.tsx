@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureDailyPlan, getSettings } from "@/lib/server/daily";
 import { getHomeStats } from "@/lib/server/stats";
 import { comprehensionIndex, streakTier, type StreakTier } from "@/lib/engine";
-import { signOut } from "./actions";
+import LogoutButton from "@/components/logout-button";
 
 
 const MENU = [
@@ -52,9 +52,7 @@ async function HomeContent() {
         <div>
           <h1 className="text-xl font-semibold">Belajar Bahasa Al-Qur&apos;an</h1>
         </div>
-        <form action={signOut}>
-          <button className="text-sm underline opacity-60">Keluar</button>
-        </form>
+        <LogoutButton />
       </header>
 
       <section className="rounded-2xl border border-emerald-700/30 bg-emerald-700/5 p-5">

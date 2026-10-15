@@ -1,4 +1,4 @@
-import type { ExerciseType } from "@/lib/engine";
+import type { ExerciseType, ItemStatus } from "@/lib/engine";
 
 export interface WordView {
   text: string;
@@ -50,3 +50,25 @@ export interface LessonCard {
 }
 
 export type SessionCard = LemmaCard | AyahCard | LessonCard;
+
+export interface ReviewInput {
+  clientId: string;
+  itemId: number;
+  exercise: ExerciseType;
+  /** Latihan pilihan ganda. */
+  correct?: boolean;
+  /** Latihan terjemah: penilaian mandiri. */
+  grade?: "benar" | "sebagian" | "salah";
+  responseMs: number;
+}
+
+export interface ReviewResult {
+  ok: boolean;
+  level?: number;
+  status?: ItemStatus;
+  nextDue?: string;
+  /** Pemahaman item (0-100) sebelum dan sesudah jawaban ini. */
+  before?: number;
+  after?: number;
+  error?: string;
+}

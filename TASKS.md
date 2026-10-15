@@ -50,14 +50,15 @@ Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 ## M5 Offline & audio (rencana disetujui pemilik 2026-10-16; keputusan: `docs/DECISIONS.md` bagian "Penyimpanan lokal dan audio")
 Server tidak menyimpan audio. Data pengguna tetap master di server; lokal = salinan + antrean.
 
-**O1 Fondasi lokal (Tingkat 1, otomatis tanpa bertanya, target < 2 MB)**
-- [ ] Skema Dexie (`lib/local/db.ts`): `userItems`, `dailyPlan`, `dueItems` (7 hari), `settings`, `outbox`, `lemmas` (yang ber-gloss), `roots`, `lessons`, `exampleAyahs`, `contentVersion`, `downloads`
-- [ ] Sinkron turun: isi tabel di atas saat online (awal sesi + setelah login); konten diberi versi (`corpus_meta` / flag `reviewed` gloss / versi pelajaran) dan diperbarui otomatis tanpa bertanya bila versi berubah
-- [ ] Outbox: `review_logs` dan `pola_attempts` ditulis lokal dulu, dikirim saat online (`client_id` unik sudah ada, aman diulang)
-- [ ] Jalankan `lib/engine` di klien untuk streak, pemahaman, cakupan, indeks saat offline
-- [ ] `/belajar` dan `/kuis` bisa jalan offline dari data lokal (item baru tetap hanya dibuka server lewat mastery gate)
-- [ ] Hapus data pengguna lokal saat logout (konten boleh tetap)
-- [ ] Uji unit untuk logika sinkron/outbox sebelum UI
+**O1 Fondasi lokal (Tingkat 1, otomatis tanpa bertanya, target < 2 MB)** (selesai 2026-10-16; lihat `docs/DECISIONS.md` "O1 fondasi lokal")
+- [x] Skema Dexie (`lib/local/db.ts`): `userItems`, `dailyPlan`, `settings`, `outbox`, `lemmas`, `roots`, `lessons`, `exampleAyahs`, `contentVersion`, `downloads`. Tabel `dueItems` tidak dibuat (cukup indeks `userItems.dueAt`); tambahan: `ayahs`, `reviewDays`, `meta`
+- [x] Sinkron turun (`lib/local/sync.ts`): awal sesi, saat online lagi, tab aktif, setelah login; konten berversi lewat RPC `content_versions()` dan diperbarui otomatis bila berubah
+- [x] Outbox (`lib/local/outbox.ts`): `review_logs` + keadaan `user_items`, `pola_attempts`, `session_done` ditulis lokal dulu, dikirim idempoten (`client_id`); `pola_attempts.client_id` ditambah (migrasi 0009)
+- [x] `lib/engine` jalan di klien: `applyReview` (satu aturan untuk server dan klien), `getLocalStats` (streak, cakupan, pemahaman, indeks)
+- [x] `/belajar` dan `/kuis` jalan offline dari data lokal (cangkang statis di-cache service worker; item baru tetap hanya dibuka server lewat mastery gate)
+- [x] Hapus data pengguna lokal saat logout dan saat akun berganti (konten tetap)
+- [x] Uji unit sebelum UI: tes baru untuk outbox, sinkron, sesi, statistik, dan engine (total 116 lulus)
+- [ ] **Belum diverifikasi di perangkat nyata** (sandbox agen tidak bisa menjangkau Supabase/browser): uji alur offline manual: buka `/belajar` online sekali, matikan internet, jawab beberapa kartu, hidupkan internet, cek `review_logs` di Supabase terisi
 
 **O2 Unduhan pilihan pengguna (Tingkat 2, wajib minta izin)**
 - [ ] Ukur dulu ukuran nyata teks + arti kata per surah, per juz, seluruh Al-Qur'an (perkiraan seluruh ±10–15 MB, belum diverifikasi)
