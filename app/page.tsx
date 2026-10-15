@@ -68,6 +68,10 @@ async function HomeContent() {
           <p className="font-medium">Daftar kata</p>
           <p className="mt-0.5 text-xs opacity-60">Lihat persen pemahaman tiap kata</p>
         </Link>
+        <Link href="/pola" className="rounded-2xl border border-current/15 p-4 text-sm">
+          <p className="font-medium">Kuis pola kata</p>
+          <p className="mt-0.5 text-xs opacity-60">Madhi, mudhari&apos;, isim fa&apos;il, mashdar...</p>
+        </Link>
         <Link href="/baca" className="rounded-2xl border border-current/15 p-4 text-sm">
           <p className="font-medium">Baca ayat</p>
           <p className="mt-0.5 text-xs opacity-60">Kata per kata dengan arti dan warna penguasaan</p>
