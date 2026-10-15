@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -15,8 +16,26 @@ import { finishSession, submitReview } from "./actions";
 
 type Outcome = { itemId: number; ok: boolean };
 
-export default function Session({ cards }: { cards: SessionCard[] }) {
+type Change = { label: string; before: number; after: number };
+
+function cardLabel(c: SessionCard): string {
+  if (c.kind === "lemma") return `${c.lemmaAr} · ${c.gloss}`;
+  if (c.kind === "ayah") return `QS ${c.surah}:${c.ayah}`;
+  return c.title;
+}
+
+export default function Session({
+  cards,
+  mode = "belajar",
+}: {
+  cards: SessionCard[];
+  mode?: "belajar" | "kuis";
+}) {
+  const isQuiz = mode === "kuis";
+  const router = useRouter();
   const [queue, setQueue] = useState(cards);
+  const [changes, setChanges] = useState<Record<number, Change>>({});
+  const [missed, setMissed] = useState<Record<number, string>>({});
   const [index, setIndex] = useState(0);
   const [outcomes, setOutcomes] = useState<Outcome[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -49,27 +68,100 @@ export default function Session({ cards }: { cards: SessionCard[] }) {
         grade: payload.grade,
         responseMs: payload.responseMs,
       });
-      if (!res.ok) setError(res.error ?? "Gagal menyimpan jawaban");
+      if (!res.ok) {
+        setError(res.error ?? "Gagal menyimpan jawaban");
+        return;
+      }
+      if (res.before !== undefined && res.after !== undefined) {
+        const { before, after } = res;
+        setChanges((prev) => ({
+          ...prev,
+          [c.itemId]: {
+            label: cardLabel(c),
+            before: prev[c.itemId]?.before ?? before,
+            after,
+          },
+        }));
+      }
     });
+    if (!ok) setMissed((m) => ({ ...m, [c.itemId]: cardLabel(c) }));
     advance(ok);
   }
 
   if (!card) {
     const right = outcomes.filter((o) => o.ok).length;
+    const changeList = Object.values(changes);
+    const delta =
+      changeList.length > 0
+        ? changeList.reduce((sum, c) => sum + (c.after - c.before), 0) / changeList.length
+        : 0;
+    const empty = outcomes.length === 0;
     return (
       <Shell>
-        <FinishOnce />
-        <div className="flex flex-col items-center gap-4 py-16 text-center">
+        {!isQuiz && <FinishOnce />}
+        <div className="flex flex-col items-center gap-4 py-10 text-center">
           <p className="text-2xl font-semibold">
-            {outcomes.length === 0 ? "Belum ada yang perlu diulang" : "Sesi selesai"}
+            {empty
+              ? isQuiz
+                ? "Belum ada kata untuk dikuis"
+                : "Belum ada yang perlu diulang"
+              : isQuiz
+                ? "Kuis selesai"
+                : "Sesi selesai"}
           </p>
-          {outcomes.length > 0 && (
-            <p className="opacity-70">
-              {right} dari {outcomes.length} jawaban tepat.
+          {empty && isQuiz && (
+            <p className="max-w-xs text-sm opacity-70">
+              Kuis memakai kata yang sudah Anda pelajari. Selesaikan dulu sesi belajar hari ini.
             </p>
           )}
-          <Link href="/" className="rounded-xl bg-emerald-700 px-5 py-2.5 font-medium text-white">
-            Kembali ke beranda
+          {!empty && (
+            <p className="opacity-70">
+              {right} dari {outcomes.length} jawaban tepat.
+              {isQuiz && changeList.length > 0 && (
+                <>
+                  {" "}Rata-rata pemahaman kata{" "}
+                  <b className={delta >= 0 ? "text-emerald-600" : "text-red-500"}>
+                    {delta >= 0 ? "+" : ""}
+                    {delta.toFixed(1)} poin
+                  </b>.
+                </>
+              )}
+            </p>
+          )}
+        </div>
+
+        {isQuiz && changeList.length > 0 && (
+          <ul className="flex flex-col gap-2 text-sm">
+            {changeList.map((c, i) => (
+              <li key={i} className="flex items-center justify-between rounded-xl border border-current/15 px-3 py-2">
+                <span>{c.label}</span>
+                <span className="tabular-nums opacity-80">
+                  {Math.round(c.before)}% → <b>{Math.round(c.after)}%</b>
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {isQuiz && Object.keys(missed).length > 0 && (
+          <p className="text-sm opacity-70">
+            Perlu diulang: {Object.values(missed).join("; ")}
+          </p>
+        )}
+
+        <div className="flex flex-wrap justify-center gap-3 pt-2">
+          {isQuiz && !empty && (
+            <button
+              className="rounded-xl bg-emerald-700 px-5 py-2.5 font-medium text-white"
+              onClick={() => router.refresh()}
+            >
+              Kuis lagi
+            </button>
+          )}
+          <Link href="/kosakata" className="rounded-xl border border-current/25 px-5 py-2.5 font-medium">
+            Daftar kata
+          </Link>
+          <Link href="/" className="rounded-xl border border-current/25 px-5 py-2.5 font-medium">
+            Beranda
           </Link>
         </div>
       </Shell>
@@ -77,7 +169,7 @@ export default function Session({ cards }: { cards: SessionCard[] }) {
   }
 
   return (
-    <Shell progress={`${Math.min(index + 1, total)} / ${total}`}>
+    <Shell progress={`${isQuiz ? "Kuis · " : ""}${Math.min(index + 1, total)} / ${total}`}>
       {error && <p className="mb-3 text-sm text-red-500">{error}</p>}
       {card.kind === "lemma" && (
         <LemmaView key={`${card.itemId}-${index}`} card={card} onDone={(ok, ms) =>

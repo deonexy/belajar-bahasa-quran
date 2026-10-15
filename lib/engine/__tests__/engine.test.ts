@@ -11,6 +11,7 @@ import {
   pickNewItems,
   ratingFromSelfGrade,
   retentionOrDefault,
+  understanding,
   scheduleReview,
   type Item,
   type UserItem,
@@ -234,5 +235,18 @@ describe("scheduleReview (FSRS)", () => {
     const nextDay = new Date(later.getTime() + 2 * 86_400_000);
     const third = scheduleReview(second, 3, nextDay, 0.9);
     expect(third.stability).toBeGreaterThan(second.stability);
+  });
+});
+
+describe("understanding", () => {
+  it("0 untuk item baru, 100 untuk level 3 dengan stabilitas >= 21 hari", () => {
+    expect(understanding(0, 0)).toBe(0);
+    expect(understanding(3, 21)).toBeCloseTo(100);
+    expect(understanding(3, 60)).toBeCloseTo(100);
+  });
+  it("dibatasi oleh yang terlemah antara level dan stabilitas", () => {
+    expect(understanding(3, 10.5)).toBeCloseTo(50);
+    expect(understanding(1, 21)).toBeCloseTo(100 / 3);
+    expect(understanding(9, -5)).toBe(0);
   });
 });
