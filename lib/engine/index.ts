@@ -8,3 +8,4 @@ export * from "./coverage";
 export * from "./projection";
 export * from "./streak";
 export * from "./index-score";
+export * from "./review";

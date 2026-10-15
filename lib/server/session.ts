@@ -1,26 +1,23 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { chooseExercise, understanding, type ItemKind } from "@/lib/engine";
+import type { ItemKind } from "@/lib/engine";
+import {
+  MAX_CARDS,
+  exerciseFor,
+  makeLemmaCard,
+  needsExample,
+  orderCards,
+  pickQuizCandidates,
+  shuffle,
+} from "@/lib/session-cards";
 import type {
   AyahCard,
   ExampleView,
-  LemmaCard,
   LessonCard,
   SessionCard,
   WordView,
 } from "@/lib/session-types";
 
-const MAX_CARDS = 40;
-
 type Row = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-function shuffle<T>(arr: T[], rng: () => number): T[] {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
 
 async function wordsOfAyah(
   supabase: SupabaseClient,
@@ -125,19 +122,18 @@ export async function buildQuiz(
   const all = ((data ?? []) as Row[]).filter((r) => Number(r.fsrs?.reps ?? 0) >= 1);
   if (all.length === 0) return [];
 
-  const now = Date.now();
-  const weighted = all.map((r) => {
-    const u = understanding(Number(r.level), Number(r.fsrs?.stability ?? 0)) / 100;
-    const overdue = new Date(r.due_at).getTime() <= now ? 0.3 : 0;
-    return { row: r, weight: 0.1 + (1 - u) + overdue };
-  });
-
-  // Pengambilan acak berbobot tanpa pengembalian (Efraimidis-Spirakis).
-  const picked = weighted
-    .map((w) => ({ w, key: Math.pow(rng(), 1 / w.weight) }))
-    .sort((x, y) => y.key - x.key)
-    .slice(0, count)
-    .map((x) => toQueueRow(x.w.row));
+  const picked = pickQuizCandidates(
+    all.map((r) => ({
+      row: r,
+      itemId: Number(r.item_id),
+      level: Number(r.level),
+      stability: Number(r.fsrs?.stability ?? 0),
+      dueAt: String(r.due_at),
+    })),
+    count,
+    Date.now(),
+    rng,
+  ).map((x) => toQueueRow(x.row));
 
   const cards = await cardsFromRows(supabase, picked, rng);
   return shuffle(cards, rng);
@@ -175,32 +171,24 @@ async function cardsFromRows(
   for (const r of lemmaRows) {
     const l = lemmaMap.get(r.refId);
     if (!l || !l.gloss_id) continue;
-    const exercise = chooseExercise(r.level, "lemma", rng);
-    const samePos = bank.filter((b) => b.id !== l.id && b.pos === l.pos && b.gloss_id !== l.gloss_id);
-    const pool = samePos.length >= 3 ? samePos : bank.filter((b) => b.id !== l.id && b.gloss_id !== l.gloss_id);
-    const distractors = shuffle(pool, rng).slice(0, 3);
-    // recognize: Arab -> arti; recall: arti -> Arab; context: ayat -> arti
-    const forward = exercise !== "recall";
-    const correctLabel = forward ? l.gloss_id : l.lemma_ar;
-    const labels = shuffle(
-      [correctLabel, ...distractors.map((d) => (forward ? d.gloss_id : d.lemma_ar))],
-      rng,
-    );
+    const exercise = exerciseFor(r.level, rng);
     const root = Array.isArray(l.roots) ? l.roots[0] : l.roots;
-    const needExample = exercise === "context" || r.reps === 0;
-    cards.push({
-      kind: "lemma",
+    const card = makeLemmaCard({
       itemId: r.itemId,
-      isNew: r.reps === 0,
+      reps: r.reps,
       exercise,
-      lemmaAr: l.lemma_ar,
-      gloss: l.gloss_id,
-      pos: l.pos,
-      rootAr: root?.root_ar ?? null,
-      options: labels,
-      answer: labels.indexOf(correctLabel),
-      example: needExample ? await exampleFor(supabase, l.id) : null,
-    } satisfies LemmaCard);
+      lemma: {
+        id: l.id,
+        lemmaAr: l.lemma_ar,
+        pos: l.pos,
+        gloss: l.gloss_id,
+        rootAr: root?.root_ar ?? null,
+      },
+      bank: bank.map((b) => ({ id: b.id, lemmaAr: b.lemma_ar, pos: b.pos, gloss: b.gloss_id })),
+      example: needsExample(exercise, r.reps) ? await exampleFor(supabase, l.id) : null,
+      rng,
+    });
+    if (card) cards.push(card);
   }
 
   if (lessonRows.length > 0) {
@@ -245,8 +233,5 @@ async function cardsFromRows(
     } satisfies AyahCard);
   }
 
-  // Urutan: pelajaran baru dulu, lalu campur acak review dan item baru.
-  const first = cards.filter((c) => c.kind === "lesson" && c.isNew);
-  const rest = shuffle(cards.filter((c) => !(c.kind === "lesson" && c.isNew)), rng);
-  return [...first, ...rest];
+  return orderCards(cards, rng);
 }

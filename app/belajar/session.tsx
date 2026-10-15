@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,9 +9,10 @@ import type {
   ExampleView,
   LemmaCard,
   LessonCard,
+  ReviewInput,
+  ReviewResult,
   SessionCard,
 } from "@/lib/session-types";
-import { finishSession, submitReview } from "./actions";
 
 type Outcome = { itemId: number; ok: boolean };
 
@@ -27,12 +27,20 @@ function cardLabel(c: SessionCard): string {
 export default function Session({
   cards,
   mode = "belajar",
+  review,
+  onFinish,
+  onAgain,
 }: {
   cards: SessionCard[];
   mode?: "belajar" | "kuis";
+  /** Mencatat satu jawaban (lokal-dulu atau server). */
+  review: (input: ReviewInput) => Promise<ReviewResult>;
+  /** Dipanggil sekali saat sesi belajar selesai. */
+  onFinish?: () => void;
+  /** Kuis lagi dengan soal baru. */
+  onAgain?: () => void;
 }) {
   const isQuiz = mode === "kuis";
-  const router = useRouter();
   const [queue, setQueue] = useState(cards);
   const [changes, setChanges] = useState<Record<number, Change>>({});
   const [missed, setMissed] = useState<Record<number, string>>({});
@@ -60,7 +68,7 @@ export default function Session({
   ) {
     setError(null);
     startTransition(async () => {
-      const res = await submitReview({
+      const res = await review({
         clientId: crypto.randomUUID(),
         itemId: c.itemId,
         exercise: payload.exercise as never,
@@ -98,7 +106,7 @@ export default function Session({
     const empty = outcomes.length === 0;
     return (
       <Shell>
-        {!isQuiz && <FinishOnce />}
+        {!isQuiz && <FinishOnce onFinish={onFinish} />}
         <div className="flex flex-col items-center gap-4 py-10 text-center">
           <p className="text-2xl font-semibold">
             {empty
@@ -152,7 +160,7 @@ export default function Session({
           {isQuiz && !empty && (
             <button
               className="rounded-xl bg-emerald-700 px-5 py-2.5 font-medium text-white"
-              onClick={() => router.refresh()}
+              onClick={onAgain}
             >
               Kuis lagi
             </button>
@@ -187,9 +195,11 @@ export default function Session({
   );
 }
 
-function FinishOnce() {
+function FinishOnce({ onFinish }: { onFinish?: () => void }) {
+  // Sengaja sekali saat muncul; onFinish stabil per sesi.
   useEffect(() => {
-    void finishSession();
+    onFinish?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return null;
 }

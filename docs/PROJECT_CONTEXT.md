@@ -39,7 +39,7 @@ Fitur inti: konten bertambah bertahap lewat **mastery gate** (materi baru hanya 
 
 - **Next.js 16** (App Router, React 19, Tailwind 4, TypeScript strict). Baca `node_modules/next/dist/docs/` sebelum menulis kode Next; lihat jebakan di bagian 7.
 - **Supabase:** Postgres + RLS, Auth, Edge Functions (Deno), `pg_net`; `pg_cron` direncanakan.
-- **ts-fsrs** untuk spaced repetition. **Vitest** untuk uji unit. **Dexie** terpasang (belum dipakai) untuk offline.
+- **ts-fsrs** untuk spaced repetition. **Vitest** untuk uji unit. **Dexie** (IndexedDB) dipakai untuk penyimpanan lokal/offline (`lib/local/`, O1).
 - CI: `.github/workflows/ci.yml` (lint, typecheck, test, build).
 
 Struktur penting:
@@ -49,10 +49,12 @@ Struktur penting:
 | `lib/engine/` | Logika murni tanpa UI: `rating`, `fsrs`, `mastery`, `gate`, `selection`, `coverage` (+ `understanding`). Semua punya uji di `lib/engine/__tests__` |
 | `lib/server/` | `daily.ts` (rencana harian + buka item baru), `session.ts` (`buildSession`, `buildQuiz`), `stats.ts` (streak, cakupan), `lemmas.ts` |
 | `lib/supabase/` | klien browser dan server (`@supabase/ssr`) |
+| `lib/local/` | Penyimpanan lokal (O1): `db` (skema Dexie), `sync` (tarik data + konten berversi), `outbox` (kirim idempoten), `review` (jawaban lokal-dulu), `session`/`stats` (sesi dan ringkasan dari data lokal), `remote` (antarmuka server + adaptor Supabase), `runtime` (perekat browser). Uji di `lib/local/__tests__` |
+| `lib/session-cards.ts`, `lib/engine/review.ts` | Pembuat kartu dan `applyReview` yang dipakai bersama server dan klien |
 | `proxy.ts` | proteksi route + penyegar sesi (pengganti `middleware.ts` di Next 16) |
 | `app/` | `/` beranda, `/belajar`, `/kuis`, `/kosakata`, `/login`, `/register`, `/auth/callback` |
 | `components/auth-form.tsx` | form login/register + Google |
-| `supabase/migrations/` | 0001 konten, 0002 pengguna, 0003 kunci lemma, 0004 import_log, 0005 fungsi bantu |
+| `supabase/migrations/` | 0001 konten, 0002 pengguna, 0003 kunci lemma, 0004 import_log, 0005 fungsi bantu, 0006 M3, 0008 pola_attempts, 0009 local_sync |
 | `supabase/functions/import-corpus/` | parser korpus (`parse.ts` + tes), impor idempoten, `glosses.ts` |
 | `supabase/seed/` | `lessons.sql`, `gloss_backfill.sql`, `glosses_321_700.sql`, `lessons_nahwu_sharaf.sql` (dihasilkan `scripts/gen_lessons_f4.py`; teks ayat diambil dari `data/raw/fawaz`) |
 | `content/glosses_id.tsv`, `content/glosses_id_321_700.tsv` | draf arti Indonesia lemma peringkat 1-320 dan 321-700 (kunci `rank` = `freq_rank`), kolom `reviewed` masih semua `false` |
@@ -64,6 +66,7 @@ Struktur penting:
 - **Pengguna (RLS `user_id = auth.uid()`):** `user_settings`, `user_items` (level 0-3, `fsrs` jsonb, `status`, `due_at`), `review_logs` (`client_id` unik untuk idempotensi), `daily_plans`, `daily_stats`, `push_subscriptions`, `ai_usage`. View `v_user_coverage`.
 - **Fungsi RPC (security invoker):** `review_days`, `new_item_candidates`, `openable_ayah_items`, `take_daily_snapshot(user, date)`, `lemmas_needed_for_target(target)`, `reviews_due_within(days)`.
 - **M3 (migrasi 0006):** `data_source` (audit sumber/lisensi), kolom target di `user_settings` (`target_token_coverage`, `target_test_accuracy`, `daily_review_limit`, `phase1_deadline`), `daily_stats` dipakai sebagai snapshot harian (+`roots_mastered`, `test_accuracy_4w`), `pg_cron` job `daily-snapshot` (00.05 WIB, snapshot penutup hari kemarin), view `v_user_coverage` hanya menghitung lemma yang masih terjaga.
+- **O1 (migrasi 0009, sudah diterapkan):** `pola_attempts.client_id` (unik), RPC `content_versions()` (hash versi konten) dan `lemma_examples(bigint[])` (ayat contoh terpendek per lemma). Keduanya read-only, security invoker.
 - Data terimpor (terverifikasi): 77.429 kata, 4.815 lemma, 6.236 ayat, 1.651 akar, 11.054 item. 700 lemma punya `gloss_id` (≈85% token; draf AI, belum ditinjau pemilik; seed `supabase/seed/glosses_321_700.sql`).
 - Nama tabel berbeda dari `docs/SPEC_FASE1.md` (spec: `root/lemma/verse/token/card`). **Keputusan: tidak mengganti nama**, tambahkan tabel yang belum ada.
 
@@ -84,6 +87,8 @@ Selesai dan terdeploy: fondasi, korpus, engine + 51 tes, auth (email/sandi + Goo
 
 Pemilik sudah memakai aplikasi dengan akun asli (15 Okt 2026: 6 item, 14 review, retensi 93%), jadi alur login → sesi belajar terbukti jalan. M3 dan dashboard F7 (`/dashboard`) selesai.
 
+**O1 fondasi lokal selesai (kode, tes, build) tetapi belum diuji di perangkat nyata**: `/belajar` dan `/kuis` kini cangkang statis yang membangun sesi dari IndexedDB; jawaban ditulis lokal dulu lalu dikirim lewat outbox. Uji manual offline masih perlu dilakukan pemilik (lihat `TASKS.md`).
+
 Checklist rinci ada di `TASKS.md`.
 
 ## 7. Jebakan dan pelajaran (baca sebelum mengubah kode)
@@ -98,6 +103,8 @@ Checklist rinci ada di `TASKS.md`.
 - **Vercel MCP** tidak punya akses ke akun pemilik; deploy dibuat manual oleh pemilik. Auto-deploy jalan dari `main`.
 - **Supabase:** migrasi diterapkan lewat MCP `apply_migration` (bukan CLI), jadi riwayat migrasi remote berbeda dari nama file. Perlu `supabase migration repair` bila ingin memakai CLI. Pembuatan secret Edge Function dilakukan pemilik di dashboard.
 - **Pendaftaran publik terbuka**; data dipisah RLS. Tutup di dashboard bila aplikasi hanya untuk pemilik.
+- **Penyimpanan lokal (O1):** data pengguna lokal tidak boleh menimpa/ditimpa sembarangan: selama `outbox` belum kosong, sinkron tidak menarik data pengguna. `reviewed_at` harus dikirim dari waktu jawab. `dueAt` lokal dinormalkan ke ISO `Z` (Postgres memberi `+00:00`) agar perbandingan teks benar. Jangan memanggil metode auth di dalam callback `onAuthStateChange` (tunda dengan `setTimeout`). Cangkang `/belajar` dan `/kuis` harus tetap tanpa data pribadi (di-cache service worker).
+- **CI:** `typecheck` memerlukan `next typegen` (sudah ada di script). Isi `describe.skipIf` tetap dijalankan: baca file opsional di `beforeAll`.
 - **Web push** sering tidak jalan di perangkat tanpa layanan Google (HarmonyOS). Telegram (`telegram_chat_id` sudah ada) lebih realistis.
 
 ## 8. Alur kerja kode
@@ -126,11 +133,13 @@ Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabe
 3. ~~Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4)~~ selesai versi awal (8 pelajaran baru, `/akar/[root]`, `/pola`).
 4. Tes pemahaman ayat dengan AI (F6): perlu API key LLM sebagai secret Edge Function (diisi pemilik).
 5. Nice-to-have N1-N7 (heatmap, prioritas surah, mode dengar, leech, jurnal, PWA/Telegram, ekspor).
-6. **M5 offline & audio** (O1 fondasi lokal → O2 unduhan pilihan → O3 audio qori): rencana disetujui pemilik, rincian di `TASKS.md` bagian "M5 Offline & audio" dan `docs/DECISIONS.md`.
+6. **M5 offline & audio** (~~O1 fondasi lokal~~ selesai, perlu uji manual → O2 unduhan pilihan → O3 audio qori): rencana disetujui pemilik, rincian di `TASKS.md` bagian "M5 Offline & audio" dan `docs/DECISIONS.md`.
 
 Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/fa'il) **tidak ada** di sumber morfologi; yang ada: bentuk kata kerja (VF 1-10), partisip aktif/pasif, masdar, kasus (NOM/ACC/GEN), mood, person/gender/jumlah, keluarga partikel (إِنّ/كَان).
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
+
+- **2026-10-16 (Claude Sonnet 5.5):** O1 fondasi lokal dikerjakan. Dibuat `lib/local/*` (Dexie, sinkron berversi, outbox idempoten, review lokal, sesi/statistik lokal), `applyReview` dan pembuat kartu bersama, `/belajar` + `/kuis` jadi cangkang statis berbasis data lokal (cadangan ke server bila IndexedDB tidak ada), service worker v2 (cache cangkang), `LocalSync` di layout, tombol keluar yang mengirim antrean lalu menghapus data lokal, jawaban pola lewat outbox, migrasi 0009 (sudah diterapkan dan RPC diuji di data nyata). Tes baru untuk semua logika sinkron/outbox/sesi. Memperbaiki CI yang sudah gagal di `main` (typecheck butuh `next typegen`; `parse.test.ts`). BELUM diverifikasi di browser/perangkat nyata (sandbox tidak menjangkau Supabase). Keputusan dan penyimpangan: `docs/DECISIONS.md` "O1 fondasi lokal". Berikutnya: uji offline manual, lalu O2.
 
 - **2026-10-16 (Claude Opus 5.5):** rencana M5 offline & audio disusun bersama pemilik dan dimasukkan ke `TASKS.md` (O1–O3) dan `docs/DECISIONS.md`. Aturan pemilik: data esensial kecil disimpan lokal otomatis; data besar diunduh hanya atas pilihan pengguna dengan penjelasan manfaat. Audio dari CDN pihak ketiga dengan pilihan qori, tidak disimpan di server. Hanya dokumen; tidak ada perubahan kode.
 

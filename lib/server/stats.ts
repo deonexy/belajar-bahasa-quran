@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
+  computeStreak,
   ayatScore,
   comprehension,
   grammarScore,
@@ -7,22 +8,10 @@ import {
   type UserItemWithFreq,
   type FsrsCardJson,
 } from "@/lib/engine";
-import { localDate } from "./daily";
+import { localDate } from "@/lib/dates";
 import { fetchLemmas } from "./lemmas";
 
-/** Streak: hari beruntun (zona waktu pengguna) yang punya review. Hari ini boleh belum. */
-export function computeStreak(days: string[], tz: string): number {
-  const set = new Set(days);
-  const day = (offset: number) =>
-    localDate(tz, new Date(Date.now() - offset * 86400_000));
-  let offset = set.has(day(0)) ? 0 : 1;
-  let streak = 0;
-  while (set.has(day(offset))) {
-    streak += 1;
-    offset += 1;
-  }
-  return streak;
-}
+export { computeStreak };
 
 export async function getHomeStats(
   supabase: SupabaseClient,

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import RegisterSW from "@/components/register-sw";
+import LocalSync from "@/components/local-sync";
 
 export const metadata: Metadata = {
   title: "Belajar Bahasa Al-Qur'an",
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-screen antialiased">
         {children}
         <RegisterSW />
+        <LocalSync />
       </body>
     </html>
   );

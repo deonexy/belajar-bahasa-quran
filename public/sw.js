@@ -1,7 +1,11 @@
-// Service worker minimal: cache aset statis, halaman data selalu dari jaringan.
-const VERSION = "v1";
+// Service worker: aset statis cache-first; halaman data selalu dari jaringan.
+// Pengecualian: cangkang /belajar dan /kuis (statis, tanpa data pribadi; datanya diambil di klien
+// dari IndexedDB) disimpan agar bisa dibuka tanpa internet. Halaman pribadi lain TIDAK di-cache.
+const VERSION = "v2";
 const STATIC = `static-${VERSION}`;
+const SHELL = `shell-${VERSION}`;
 const OFFLINE_URL = "/offline";
+const SHELL_PATHS = ["/belajar", "/kuis"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(
@@ -13,10 +17,19 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== STATIC).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(keys.filter((k) => k !== STATIC && k !== SHELL).map((k) => caches.delete(k))),
+      )
       .then(() => self.clients.claim()),
   );
 });
+
+// Hanya respons normal (bukan hasil pengalihan ke /login) yang boleh disimpan sebagai cangkang.
+function cacheShell(pathname, res) {
+  if (!res.ok || res.redirected) return;
+  const copy = res.clone();
+  caches.open(SHELL).then((c) => c.put(pathname, copy));
+}
 
 self.addEventListener("fetch", (e) => {
   const req = e.request;
@@ -40,8 +53,33 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Navigasi: jaringan dulu (data pribadi tidak di-cache), offline -> halaman offline.
+  // Pemanasan cangkang dari aplikasi (header x-warm): simpan tanpa menavigasi.
+  if (req.headers.get("x-warm") === "1" && SHELL_PATHS.includes(url.pathname)) {
+    e.respondWith(
+      fetch(req).then((res) => {
+        cacheShell(url.pathname, res);
+        return res;
+      }),
+    );
+    return;
+  }
+
+  // Navigasi: jaringan dulu. Offline -> cangkang yang tersimpan, atau halaman offline.
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).catch(() => caches.match(OFFLINE_URL)));
+    const isShell = SHELL_PATHS.includes(url.pathname);
+    e.respondWith(
+      fetch(req)
+        .then((res) => {
+          if (isShell) cacheShell(url.pathname, res);
+          return res;
+        })
+        .catch(async () => {
+          if (isShell) {
+            const hit = await caches.match(url.pathname);
+            if (hit) return hit;
+          }
+          return caches.match(OFFLINE_URL);
+        }),
+    );
   }
 });
