@@ -38,6 +38,7 @@ Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 - [ ] Pemilik: tinjau isi 8 pelajaran nahwu-sharaf (`supabase/seed/lessons_nahwu_sharaf.sql`)
 - [ ] F6 tes ayat dengan AI (butuh API key LLM di secret Edge Function)
 - [ ] M4 Pengingat: Web Push, Telegram, pg_cron
-- [ ] M5 Statistik & offline (PWA)
+- [x] PWA dasar: manifest, ikon, service worker, halaman offline
+- [ ] M5 Statistik & offline penuh (sesi belajar tanpa internet)
 - [x] Draf arti lemma sampai peringkat 700 (≈85% token)
 - [ ] Pemilik: tinjau gloss (`content/glosses_id.tsv`, `content/glosses_id_321_700.tsv`, kolom reviewed)
