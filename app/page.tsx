@@ -93,11 +93,13 @@ async function HomeContent() {
         />
         <Stat
           wide
-          label="Kata Al-Qur'an dipahami"
-          value={`${stats.learnedUniquePct.toFixed(1)}%`}
-          sub={`${stats.lemmasMastered}/${stats.totalLemmas} kata unik dikuasai`}
+          label="Kata dipelajari"
+          value={`${stats.lemmasOpened}`}
+          sub={`kata unik · ${stats.learnedUniquePct.toFixed(1)}% dari ${stats.totalLemmas.toLocaleString("id-ID")} kata unik, ${stats.lemmasMastered} sudah dikuasai`}
         />
       </section>
+
+      <TokenBar known={stats.learnedTokens} total={stats.totalWords} />
 
       <IndexCard index={index} />
 
@@ -186,5 +188,30 @@ function IndexCard({ index }: { index: ReturnType<typeof comprehensionIndex> }) 
         ))}
       </ul>
     </details>
+  );
+}
+
+function TokenBar({ known, total }: { known: number; total: number }) {
+  const pct = total > 0 ? (known / total) * 100 : 0;
+  return (
+    <section className="rounded-2xl border border-emerald-700/30 bg-emerald-700/5 p-4">
+      <p className="text-xs opacity-60">Kata di Al-Qur&apos;an yang sudah kamu kenali</p>
+      <p className="mt-1 text-2xl font-semibold">
+        {known.toLocaleString("id-ID")}{" "}
+        <span className="text-sm font-normal opacity-70">
+          dari {total.toLocaleString("id-ID")} kata ({pct.toFixed(1)}%)
+        </span>
+      </p>
+      <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/10 dark:bg-white/15">
+        <div
+          className="h-3 rounded-full bg-gradient-to-r from-emerald-500 to-lime-400"
+          style={{ width: `${Math.max(pct, known > 0 ? 2 : 0)}%` }}
+        />
+      </div>
+      <p className="mt-2 text-xs opacity-60">
+        Setiap kata yang muncul berulang dihitung tiap kemunculannya, jadi kata sering seperti min dan Allah
+        langsung menambah banyak.
+      </p>
+    </section>
   );
 }
