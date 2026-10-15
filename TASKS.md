@@ -28,7 +28,11 @@ Pelacak kerja. Konteks lengkap: `docs/PROJECT_CONTEXT.md`. Perbarui setiap task 
 ## M3 Penyelarasan dengan `docs/SPEC_FASE1.md` (keputusan: PROJECT_CONTEXT bagian 9)
 Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 - [x] Putuskan rumus gerbang F2 dan definisi "dikuasai" (PROJECT_CONTEXT bagian 9)
-- [ ] RLS `review_logs` append-only: file siap di `supabase/pending/`, menunggu persetujuan pemilik
+- [ ] **PENDING (ditunda pemilik, 2026-10-16)** RLS `review_logs` append-only. Pemilik belum paham kegunaannya dan baru bisa akses Supabase siang hari. Jangan diterapkan tanpa konfirmasi baru dari pemilik.
+  - Kegunaan: saat ini pengguna secara teknis bisa mengubah/menghapus riwayat review miliknya sendiri lewat API. Perubahan ini membatasinya hanya baca + tambah, supaya data riwayat (dasar streak, retensi, laporan) tidak bisa rusak atau terhapus tidak sengaja. Aplikasi tidak berubah perilakunya. Risiko tanpa perubahan: rendah (hanya satu pengguna).
+  - File siap: `supabase/pending/20261015000007_review_logs_append_only.sql` (6 baris; menghapus policy `own_rows`, menambah `own_select` dan `own_insert`).
+  - Kendala: alat Supabase di sesi agen membatalkan otomatis perintah `drop policy`. Cara: pemilik menempelkan file itu di Supabase SQL Editor, atau agen memakai alternatif `revoke update, delete on review_logs from authenticated` setelah pemilik setuju.
+  - Setelah diterapkan: pindahkan file ke `supabase/migrations/` dan centang butir ini.
 - [x] Tabel `data_source`, snapshot harian (`daily_stats` + `pg_cron`), target di `user_settings`
 - [x] Dashboard target dan proyeksi (`/dashboard`)
 

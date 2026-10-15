@@ -131,6 +131,8 @@ Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
 
+- **2026-10-16 (Claude Sonnet 5.5):** RLS `review_logs` append-only ditandai PENDING di `TASKS.md` atas permintaan pemilik (belum paham, belum bisa akses Supabase sampai siang). Jangan diterapkan sebelum pemilik mengonfirmasi ulang.
+
 - **2026-10-16 (Claude Sonnet 5.5):** beranda lebih informatif atas permintaan pemilik. Streak berwarna 4 tingkat (`streakTier`: freeze=0, cold=belum belajar hari ini, warm 1-6, hot >=7). "Penguasaan kata" = rata-rata `understanding` semua lemma dibuka. "Kata Al-Qur'an dipahami" = lemma dibuka / total lemma unik (sub: dikuasai/total unik). "Tingkat pemahaman" kini indeks gabungan (`lib/engine/index-score.ts`): cakupan token dikuasai 40%, kekuatan ingatan (bobot frekuensi) 20%, retensi 7 hari 15%, tata bahasa 15% (pelajaran terhadap SEMUA pelajaran 70% + akurasi kuis pola 30 hari 30%), ayat 10% (penuh di 30 ayat). Komponen tanpa data dihitung 0. Migrasi baru `20261016000008_pola_attempts.sql` (sudah diterapkan): jawaban `/pola` kini disimpan. Catatan: `/dashboard` (snapshot F7) masih memakai definisi lama `comprehension`; selaraskan bila perlu.
 
 - **2026-10-16 (Claude Sonnet 5.5):** PWA dasar: `app/manifest.ts` (standalone, shortcut Belajar/Baca/Kuis), ikon asli buku terbuka + bintang (`scripts/gen_icons.mjs` menghasilkan `public/icons/*`, `app/icon.png`, `app/apple-icon.png`; `favicon.ico` bawaan dihapus), `public/sw.js` (cache aset statis; halaman data selalu dari jaringan; offline -> `/offline`), `components/register-sw.tsx` (hanya production). Sengaja TIDAK meng-cache halaman pribadi. Offline penuh (belajar tanpa internet) masih M5.
