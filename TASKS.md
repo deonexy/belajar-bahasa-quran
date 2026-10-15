@@ -26,6 +26,7 @@ Pelacak kerja. Konteks lengkap: `docs/PROJECT_CONTEXT.md`. Perbarui setiap task 
 - [ ] Uji end-to-end dengan akun asli (login sampai satu sesi penuh)
 
 ## M3 Penyelarasan dengan `docs/SPEC_FASE1.md` (menunggu keputusan pemilik, lihat PROJECT_CONTEXT bagian 9)
+Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 - [ ] Putuskan rumus gerbang F2 dan definisi "dikuasai"
 - [ ] RLS `review_logs` append-only
 - [ ] Tabel `data_source`, `daily_snapshot` + `pg_cron`, target di `user_settings`

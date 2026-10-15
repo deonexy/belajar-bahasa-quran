@@ -118,6 +118,8 @@ Hasil review `docs/SPEC_FASE1.md` terhadap aplikasi (15 Okt 2026):
 
 ## 10. Langkah berikutnya (usulan urutan)
 
+Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabel spec ke repo ada di `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
+
 1. **M3 penyelarasan:** putuskan butir 1-2 di atas; RLS `review_logs` append-only; tabel `data_source`, `daily_snapshot` + `pg_cron`, target di `user_settings`; dashboard target dan proyeksi (F7 awal).
 2. Lengkapi arti Indonesia lemma (draf AI → tinjau pemilik via `content/glosses_id.tsv`), lalu pembaca ayat interlinear (F5).
 3. Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4).
@@ -128,4 +130,5 @@ Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
 
+- **2026-10-15 (sesi spesifikasi, Claude Opus 5.5):** menulis ulang bagian "Urutan implementasi" di `docs/SPEC_FASE1.md` sebagai teks (diagram asli tidak terekspor), menyelaraskannya dengan kondisi repo, menambah tabel pemetaan nama spec ke repo dan paket kerja P1–P5. Hanya dokumen; tidak ada perubahan kode. Keputusan terbuka tetap di bagian 9.
 - **2026-10-15 (sesi pembangunan awal, Claude Sonnet 5.5):** membangun M0-M2 (skema, impor korpus, engine, sesi belajar), deploy Vercel oleh pemilik, auth email/sandi + Google + register, tombol salin ayat, daftar kosakata + kuis dinamis, review spesifikasi fase 1, membuat dokumen ini. Kondisi akhir: `main` terdeploy, semua tes lulus (51). Keputusan terbuka: bagian 9.
