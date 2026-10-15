@@ -48,3 +48,11 @@ Teks ayat berasal dari edisi Hafs di atas, bukan berkas Tanzil. **Lisensi masing
 - `daily_stats` dipakai sebagai snapshot harian (tidak membuat tabel `daily_snapshot` terpisah). Cron mengambil snapshot penutup hari kemarin; halaman dashboard memperbarui titik hari ini.
 - Proyeksi: regresi linear cakupan 28 hari terakhir; ditampilkan bersama sisa lemma yang dibutuhkan karena kurva cakupan melambat.
 - Target "lemma dikuasai" ditampilkan sebagai perkiraan (dikuasai + sisa lemma untuk target cakupan); target "akar dikuasai" menunggu data kurikulum.
+
+## Penyimpanan lokal dan audio (2026-10-16, disetujui pemilik)
+- **Dua tingkat penyimpanan lokal.** Tingkat 1: data esensial dan kecil (status belajar pengguna, rencana harian, item jatuh tempo 7 hari, pengaturan, outbox, lemma ber-gloss, akar, pelajaran, ayat contoh) disimpan otomatis tanpa bertanya. Tingkat 2: data besar (teks per surah/juz/seluruh Al-Qur'an, audio) hanya diunduh atas pilihan pengguna, dengan penjelasan ukuran dan manfaat (lebih cepat, bisa offline).
+- **Server tetap master** untuk data pengguna. Lokal = salinan + outbox. Pembukaan item baru (mastery gate), snapshot harian/dashboard, tes AI F6, `ai_usage`, langganan push tetap di server.
+- **Sinkron antar perangkat:** arah yang dituju adalah `user_items` dihitung ulang dari `review_logs` berurutan waktu. Ini menambah alasan keputusan `review_logs` append-only (masih PENDING).
+- **Privasi:** service worker tetap tidak meng-cache halaman pribadi. Data pengguna di IndexedDB dihapus saat logout.
+- **Audio tidak disimpan di server.** Perangkat mengunduh langsung dari CDN Islamic Network (alquran.cloud), dengan pilihan qori. Syarat sumber: gratis untuk distribusi non-komersial dan penggunaan pribadi/pendidikan; hak cipta milik qori. CORS belum diverifikasi.
+
