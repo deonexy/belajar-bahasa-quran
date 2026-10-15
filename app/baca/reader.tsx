@@ -21,11 +21,12 @@ export interface ReaderAyah {
 }
 
 const COLORS = [
-  "bg-amber-100 dark:bg-amber-900/40",
-  "bg-yellow-100 dark:bg-yellow-900/40",
-  "bg-lime-200 dark:bg-lime-900/40",
-  "bg-emerald-200 dark:bg-emerald-900/50",
+  "bg-green-200 dark:bg-green-900/50",
+  "bg-green-300 dark:bg-green-800/60",
+  "bg-green-400 dark:bg-green-700/70",
+  "bg-green-600 text-white dark:bg-green-600",
 ];
+const UNLEARNED = "border border-dashed border-black/25 dark:border-white/30";
 const LEVEL_NAMES = ["baru dikenal", "mulai ingat", "cukup ingat", "dikuasai"];
 
 export default function Reader({ surah, ayahs }: { surah: number; ayahs: ReaderAyah[] }) {
@@ -50,7 +51,7 @@ export default function Reader({ surah, ayahs }: { surah: number; ayahs: ReaderA
         </label>
       </div>
       <div className="flex flex-wrap gap-2 text-xs opacity-80">
-        <span className="rounded bg-black/5 px-2 py-0.5 dark:bg-white/10">belum dipelajari</span>
+        <span className={`rounded px-2 py-0.5 ${UNLEARNED}`}>belum dipelajari</span>
         {LEVEL_NAMES.map((n, i) => (
           <span key={n} className={`rounded px-2 py-0.5 ${COLORS[i]}`}>{n}</span>
         ))}
@@ -67,7 +68,7 @@ export default function Reader({ surah, ayahs }: { surah: number; ayahs: ReaderA
                   key={i}
                   onClick={() => setSel(active ? null : { a: a.ayah, i })}
                   className={`flex flex-col items-center rounded-lg px-2 py-1 ${
-                    w.level === null ? "bg-black/5 dark:bg-white/10" : COLORS[w.level]
+                    w.level === null ? UNLEARNED : COLORS[w.level]
                   } ${active ? "ring-2 ring-emerald-600" : ""}`}
                 >
                   <span className="text-2xl leading-loose" lang="ar">{w.text}</span>
