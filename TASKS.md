@@ -43,6 +43,35 @@ Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 - [ ] F6 tes ayat dengan AI (butuh API key LLM di secret Edge Function)
 - [ ] M4 Pengingat: Web Push, Telegram, pg_cron
 - [x] PWA dasar: manifest, ikon, service worker, halaman offline
-- [ ] M5 Statistik & offline penuh (sesi belajar tanpa internet)
+- [ ] M5 Statistik & offline penuh (sesi belajar tanpa internet): rincian di bagian "M5 Offline & audio" di bawah
 - [x] Draf arti lemma sampai peringkat 700 (≈85% token)
 - [ ] Pemilik: tinjau gloss (`content/glosses_id.tsv`, `content/glosses_id_321_700.tsv`, kolom reviewed)
+
+## M5 Offline & audio (rencana disetujui pemilik 2026-10-16; keputusan: `docs/DECISIONS.md` bagian "Penyimpanan lokal dan audio")
+Server tidak menyimpan audio. Data pengguna tetap master di server; lokal = salinan + antrean.
+
+**O1 Fondasi lokal (Tingkat 1, otomatis tanpa bertanya, target < 2 MB)**
+- [ ] Skema Dexie (`lib/local/db.ts`): `userItems`, `dailyPlan`, `dueItems` (7 hari), `settings`, `outbox`, `lemmas` (yang ber-gloss), `roots`, `lessons`, `exampleAyahs`, `contentVersion`, `downloads`
+- [ ] Sinkron turun: isi tabel di atas saat online (awal sesi + setelah login); konten diberi versi (`corpus_meta` / flag `reviewed` gloss / versi pelajaran) dan diperbarui otomatis tanpa bertanya bila versi berubah
+- [ ] Outbox: `review_logs` dan `pola_attempts` ditulis lokal dulu, dikirim saat online (`client_id` unik sudah ada, aman diulang)
+- [ ] Jalankan `lib/engine` di klien untuk streak, pemahaman, cakupan, indeks saat offline
+- [ ] `/belajar` dan `/kuis` bisa jalan offline dari data lokal (item baru tetap hanya dibuka server lewat mastery gate)
+- [ ] Hapus data pengguna lokal saat logout (konten boleh tetap)
+- [ ] Uji unit untuk logika sinkron/outbox sebelum UI
+
+**O2 Unduhan pilihan pengguna (Tingkat 2, wajib minta izin)**
+- [ ] Ukur dulu ukuran nyata teks + arti kata per surah, per juz, seluruh Al-Qur'an (perkiraan seluruh ±10–15 MB, belum diverifikasi)
+- [ ] Tawaran kontekstual, bukan saat pertama buka: mis. setelah surah yang sama dibuka kedua kali. Isi singkat: ukuran + manfaat ("Lebih cepat · Bisa offline"), tombol Simpan / Nanti
+- [ ] Menu "Unduhan": daftar surah/juz + ukuran, total ruang terpakai (`navigator.storage.estimate()`), tombol hapus, opsi "hanya lewat Wi-Fi"
+- [ ] Panggil `navigator.storage.persist()` saat pengguna memilih unduh
+- [ ] `/baca` membaca dari lokal bila surah sudah diunduh, jaringan bila belum
+
+**O3 Audio murattal (unduh langsung dari CDN pihak ketiga ke perangkat)**
+- [ ] Uji header CORS `cdn.islamic.network` dari browser. Tanpa CORS respons jadi opaque dan Chrome menghitungnya jauh lebih besar dari ukuran asli (kuota cepat habis); bila tidak ada CORS, cari sumber alternatif sebelum lanjut
+- [ ] Pilihan qori dari `https://api.alquran.cloud/v1/edition/format/audio` (dinamis); simpan `reciter` dan `audio_bitrate` di `user_settings` (migrasi baru). Default bitrate unduhan 64 kbps, 128 opsional
+- [ ] URL per ayat: `https://cdn.islamic.network/quran/audio/{bitrate}/{edition}/{nomor_ayat_global}.mp3` (1–6236). Cek bitrate yang didukung tiap qori di `/quran/info/by-ayah/`
+- [ ] Putar langsung (streaming) bila belum diunduh; unduhan per surah/juz ikut aturan Tingkat 2 (ukur ukuran nyata; perkiraan 20–25 MB/juz pada 64 kbps)
+- [ ] File audio di Cache API (bukan IndexedDB), disajikan service worker saat offline; catatan unduhan di Dexie
+- [ ] Catat sumber di tabel `data_source`: rekaman gratis untuk non-komersial/pribadi/pendidikan, hak cipta tetap milik qori (bisa minta dihapus); cek ulang bila ada versi berbayar
+- [ ] Tahap 2 (opsional): sorot kata saat audio diputar memakai timestamp per kata Quran.com API (kemungkinan butuh token autentikasi)
+

@@ -126,10 +126,13 @@ Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabe
 3. ~~Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4)~~ selesai versi awal (8 pelajaran baru, `/akar/[root]`, `/pola`).
 4. Tes pemahaman ayat dengan AI (F6): perlu API key LLM sebagai secret Edge Function (diisi pemilik).
 5. Nice-to-have N1-N7 (heatmap, prioritas surah, mode dengar, leech, jurnal, PWA/Telegram, ekspor).
+6. **M5 offline & audio** (O1 fondasi lokal → O2 unduhan pilihan → O3 audio qori): rencana disetujui pemilik, rincian di `TASKS.md` bagian "M5 Offline & audio" dan `docs/DECISIONS.md`.
 
 Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/fa'il) **tidak ada** di sumber morfologi; yang ada: bentuk kata kerja (VF 1-10), partisip aktif/pasif, masdar, kasus (NOM/ACC/GEN), mood, person/gender/jumlah, keluarga partikel (إِنّ/كَان).
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
+
+- **2026-10-16 (Claude Opus 5.5):** rencana M5 offline & audio disusun bersama pemilik dan dimasukkan ke `TASKS.md` (O1–O3) dan `docs/DECISIONS.md`. Aturan pemilik: data esensial kecil disimpan lokal otomatis; data besar diunduh hanya atas pilihan pengguna dengan penjelasan manfaat. Audio dari CDN pihak ketiga dengan pilihan qori, tidak disimpan di server. Hanya dokumen; tidak ada perubahan kode.
 
 - **2026-10-16 (Claude Sonnet 5.5):** kartu "Kata Al-Qur'an dipahami" diganti "Kata dipelajari" (angka utama = jumlah lemma dibuka, supaya tidak nol dan memotivasi) + bar `TokenBar` (jumlah kemunculan kata/token dari lemma yang dibuka dibanding total kata Al-Qur'an). `getHomeStats` kini mengembalikan `learnedTokens`. Preferensi pemilik: dashboard sebaiknya memotivasi (dopamin), tampilkan capaian besar.
 
