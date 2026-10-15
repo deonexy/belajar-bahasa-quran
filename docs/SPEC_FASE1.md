@@ -135,6 +135,8 @@ Fitur-fitur ini dikerjakan setelah F1–F7 stabil, urut dari dampak terbesar.
 
 ## Skema database Supabase
 
+> Skema di bawah adalah contoh rancangan. Repo memakai nama tabel lain; lihat "Pemetaan nama: spec ke repo" di bagian Urutan implementasi.
+
 Skema dibagi dua. Tabel korpus bersifat read-only dan dapat dibaca semua pengguna yang login. Tabel pengguna dilindungi RLS berdasarkan `user_id = auth.uid()`.
 
 ```sql
@@ -328,15 +330,53 @@ Akurasi 7 hari = proporsi rating ≥ 3 di `review_log` 7 hari terakhir. Perkiraa
 
 ## Urutan implementasi
 
-Kerjakan dalam enam milestone berurutan; setiap milestone di-deploy ke Vercel sebelum yang berikutnya dimulai.
+Diagram asli bagian ini (enam milestone M0–M5) tidak ikut terekspor, jadi ditulis ulang di sini sebagai teks. Urutan sudah disesuaikan dengan kondisi repo per 15 Okt 2026 dan memakai penomoran `TASKS.md`. Status terkini selalu ada di `docs/PROJECT_CONTEXT.md` bagian 6 dan `TASKS.md`.
 
-&#91;embedded content: urutan implementasi · 6 milestone\]
+### Milestone spec dan statusnya di repo
 
-M1 disorot karena setelah M1 selesai, review harian sudah bisa dipakai sambil milestone berikutnya dibangun.
+| Milestone spec | Isi | Status di repo (15 Okt 2026) |
+| --- | --- | --- |
+| M0 Fondasi data | Skema + RLS, impor korpus, hitung `freq` dan peringkat | Selesai (TASKS M0–M1), kecuali tabel `data_source` |
+| M1 FSRS + gerbang | F1 kartu + log review, F2 gerbang materi baru, uji unit `lib/engine` | Sebagian (TASKS M2). Belum: `review_logs` append-only, rumus gerbang final |
+| M2 Akar + nahwu | F3 halaman akar + kuis pola, F4 unit nahwu-sharaf | Belum |
+| M3 Baca ayat | F5 interlinear 114 surah, warna penguasaan, ketuk kata | Belum; butuh arti per kata lebih lengkap |
+| M4 Tes ayat + dashboard | F6 penilai AI di Edge Function, F7 snapshot harian + proyeksi | Belum; F6 butuh secret API LLM dari pemilik |
+| M5 Nice to have | N1–N7 sesuai urutan tabel | Belum |
 
-Instruksi untuk coder AI:
+Belajar harian sudah bisa dipakai sejak M1 (sesi `/belajar` sudah jalan). Milestone berikutnya dibangun sambil aplikasi dipakai.
 
-- Satu milestone = satu pull request ke `deonexy/belajar-bahasa-quran`, berisi migrasi SQL, kode, dan uji unit.
-- Migrasi lewat Supabase CLI (`supabase/migrations`), tidak pernah diubah langsung di dashboard.
-- PR dianggap selesai bila semua kotak kriteria penerimaan fitur terkait tercentang.
-- Logika di bagian Logika inti wajib punya uji unit sebelum UI-nya dibuat.
+### Pemetaan nama: spec ke repo
+
+Skema contoh di atas memakai nama generik. Repo memakai nama lain dan **tidak diganti** (keputusan di `PROJECT_CONTEXT.md` bagian 4). Selalu pakai nama repo.
+
+| Spec | Repo |
+| --- | --- |
+| `root`, `lemma`, `verse`, `token` | `roots`, `lemmas`, `ayahs`, `words` |
+| `card` | `user_items` (status FSRS di kolom `fsrs` jsonb, level 0–3) |
+| `review_log` | `review_logs` |
+| `app_config` | `user_settings` (tambah kolom target) |
+| `grammar_unit`, `quiz_item` | `lessons` dan `items` untuk pelajaran yang sudah ada; tabel baru hanya bila tidak cukup |
+| `daily_snapshot` | `daily_stats` (sudah ada; kolom `roots_mastered`, `test_accuracy_4w` ditambah di migrasi 0006) |
+| `data_source` | `data_source` (migrasi 0006, sudah ada) |
+| `comprehension_test`, `tadabbur_note`, `grammar_progress` | Belum ada; buat dengan nama jamak (`comprehension_tests`, ...) |
+
+### Paket kerja berikutnya (berurutan)
+
+1. **P1 Penyelarasan (TASKS M3).** Prasyarat: keputusan 1–4 di `PROJECT_CONTEXT.md` bagian 9 sudah dijawab pemilik.
+    - Migrasi baru: ganti policy `own_rows` di `review_logs` menjadi `select` + `insert` saja.
+    - Migrasi baru: tabel `data_source`, `daily_snapshots`; kolom target di `user_settings` (`target_token_coverage`, `target_test_accuracy`, `daily_review_limit`, `phase1_start`, `phase1_deadline`).
+    - Job `pg_cron` pukul 00.05 WIB (17.05 UTC) menulis snapshot harian.
+    - `lib/engine/projection.ts` + uji unit, lalu kartu dashboard di beranda (F7 awal).
+2. **P2 Arti kata + pembaca ayat (F5).** Perluas `content/glosses_id.tsv` sampai 700 lemma (≈85% token) dan minta pemilik meninjau kolom `reviewed`. Lalu halaman baca per surah dengan warna penguasaan dan panel ketuk kata.
+3. **P3 Akar + nahwu (F3, F4).** Halaman akar dan kuis pola. Data sumber tidak punya wazan isim dan peran sintaksis; kuis pola memakai bentuk fi'il (VF 1–10), partisip aktif/pasif, dan masdar. Unit nahwu memakai `lessons`/`items` yang ada.
+4. **P4 Tes ayat (F6) + dashboard lengkap (F7).** Edge Function penilai dengan secret API LLM (diisi pemilik di dashboard), tabel `comprehension_tests`, kata yang salah dicatat sebagai rating 1 di `review_logs`. Dashboard menampilkan lima ukuran, proyeksi, dan sisa lemma.
+5. **P5 Nice to have (N1–N7).** Untuk pengingat, utamakan Telegram (lihat jebakan Web Push di `PROJECT_CONTEXT.md` bagian 7).
+
+### Instruksi untuk coder AI
+
+- Baca `CLAUDE.md` dan `docs/PROJECT_CONTEXT.md` sebelum mulai. Bila spec ini bertentangan dengan keputusan di PROJECT_CONTEXT atau `docs/DECISIONS.md`, keputusan tersebut yang berlaku.
+- Satu paket kerja = satu atau beberapa PR kecil (branch → PR lewat `gh api` → squash merge ke `main`).
+- Perubahan skema = file baru bernomor di `supabase/migrations/`, lalu diterapkan ke proyek (cara penerapan: lihat jebakan Supabase di PROJECT_CONTEXT bagian 7). Jangan ubah skema di dashboard.
+- Logika di bagian "Logika inti" wajib punya uji unit di `lib/engine/__tests__` sebelum UI-nya dibuat.
+- PR dianggap selesai bila kriteria penerimaan fitur terkait tercentang dan `npm run lint && npx tsc --noEmit && npm test && npm run build` lulus.
+- Di PR yang sama, perbarui `TASKS.md` dan `docs/PROJECT_CONTEXT.md` (status, keputusan, jebakan, log sesi).

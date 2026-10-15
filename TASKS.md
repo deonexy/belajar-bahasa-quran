@@ -25,7 +25,8 @@ Pelacak kerja. Konteks lengkap: `docs/PROJECT_CONTEXT.md`. Perbarui setiap task 
 - [x] Tombol salin ayat dan arti pada contoh kata
 - [x] Uji end-to-end dengan akun asli (pemilik sudah memakai: 14 review)
 
-## M3 Penyelarasan dengan `docs/SPEC_FASE1.md` (menunggu keputusan pemilik, lihat PROJECT_CONTEXT bagian 9)
+## M3 Penyelarasan dengan `docs/SPEC_FASE1.md` (keputusan: PROJECT_CONTEXT bagian 9)
+Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 - [x] Putuskan rumus gerbang F2 dan definisi "dikuasai" (PROJECT_CONTEXT bagian 9)
 - [ ] RLS `review_logs` append-only: file siap di `supabase/pending/`, menunggu persetujuan pemilik
 - [x] Tabel `data_source`, snapshot harian (`daily_stats` + `pg_cron`), target di `user_settings`
