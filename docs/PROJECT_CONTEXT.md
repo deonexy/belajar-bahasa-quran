@@ -55,7 +55,7 @@ Struktur penting:
 | `supabase/migrations/` | 0001 konten, 0002 pengguna, 0003 kunci lemma, 0004 import_log, 0005 fungsi bantu |
 | `supabase/functions/import-corpus/` | parser korpus (`parse.ts` + tes), impor idempoten, `glosses.ts` |
 | `supabase/seed/` | `lessons.sql`, `gloss_backfill.sql` |
-| `content/glosses_id.tsv` | draf arti Indonesia 320 lemma, kolom `reviewed` masih semua `false` |
+| `content/glosses_id.tsv`, `content/glosses_id_321_700.tsv` | draf arti Indonesia lemma peringkat 1-320 dan 321-700 (kunci `rank` = `freq_rank`), kolom `reviewed` masih semua `false` |
 | `docs/` | `DECISIONS.md` (keputusan teknis), `SPEC_FASE1.md` (spesifikasi pembaruan), file ini |
 
 ## 4. Skema data (ringkas, sesuai yang sudah diterapkan)
@@ -64,7 +64,7 @@ Struktur penting:
 - **Pengguna (RLS `user_id = auth.uid()`):** `user_settings`, `user_items` (level 0-3, `fsrs` jsonb, `status`, `due_at`), `review_logs` (`client_id` unik untuk idempotensi), `daily_plans`, `daily_stats`, `push_subscriptions`, `ai_usage`. View `v_user_coverage`.
 - **Fungsi RPC (security invoker):** `review_days`, `new_item_candidates`, `openable_ayah_items`, `take_daily_snapshot(user, date)`, `lemmas_needed_for_target(target)`, `reviews_due_within(days)`.
 - **M3 (migrasi 0006):** `data_source` (audit sumber/lisensi), kolom target di `user_settings` (`target_token_coverage`, `target_test_accuracy`, `daily_review_limit`, `phase1_deadline`), `daily_stats` dipakai sebagai snapshot harian (+`roots_mastered`, `test_accuracy_4w`), `pg_cron` job `daily-snapshot` (00.05 WIB, snapshot penutup hari kemarin), view `v_user_coverage` hanya menghitung lemma yang masih terjaga.
-- Data terimpor (terverifikasi): 77.429 kata, 4.815 lemma, 6.236 ayat, 1.651 akar, 11.054 item. 320 lemma punya `gloss_id` (≈75% token).
+- Data terimpor (terverifikasi): 77.429 kata, 4.815 lemma, 6.236 ayat, 1.651 akar, 11.054 item. 700 lemma punya `gloss_id` (≈85% token; draf AI, belum ditinjau pemilik; seed `supabase/seed/glosses_321_700.sql`).
 - Nama tabel berbeda dari `docs/SPEC_FASE1.md` (spec: `root/lemma/verse/token/card`). **Keputusan: tidak mengganti nama**, tambahkan tabel yang belum ada.
 
 ## 5. Logika inti (perilaku saat ini)
@@ -122,7 +122,7 @@ Checklist rinci ada di `TASKS.md`.
 Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabel spec ke repo ada di `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 
 1. ~~M3 penyelarasan + dashboard F7~~ selesai (kecuali RLS `review_logs`, butir 5 bagian 9).
-2. Lengkapi arti Indonesia lemma (draf AI → tinjau pemilik via `content/glosses_id.tsv`), lalu pembaca ayat interlinear (F5).
+2. ~~Arti lemma sampai 700~~ selesai (draf; pemilik perlu meninjau). Berikutnya pembaca ayat interlinear (F5).
 3. Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4).
 4. Tes pemahaman ayat dengan AI (F6): perlu API key LLM sebagai secret Edge Function (diisi pemilik).
 5. Nice-to-have N1-N7 (heatmap, prioritas surah, mode dengar, leech, jurnal, PWA/Telegram, ekspor).
@@ -130,6 +130,8 @@ Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabe
 Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/fa'il) **tidak ada** di sumber morfologi; yang ada: bentuk kata kerja (VF 1-10), partisip aktif/pasif, masdar, kasus (NOM/ACC/GEN), mood, person/gender/jumlah, keluarga partikel (إِنّ/كَان).
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
+
+- **2026-10-15 (Claude Sonnet 5.5):** menambah draf arti Indonesia lemma peringkat 321-700 (380 lemma, dicocokkan per `freq_rank` dan diperiksa terhadap daftar lemma), diterapkan ke DB (lemmas + words), cakupan token berarti ≈85,4%. Semua `reviewed=false`.
 
 - **2026-10-15 (sesi eksekusi TASKS, Claude Sonnet 5.5):** P1 selesai: migrasi 0006 (target, `data_source`, snapshot harian di `daily_stats` + `pg_cron`, cakupan berbasis R≥0,9), gerbang dengan batas review 7 hari, `lib/engine/projection.ts`, dashboard `/dashboard`, ambang lulus pelajaran 80%. Keputusan 1-3 dan 7 diambil (bagian 9). RLS `review_logs` append-only dibatalkan sistem saat diterapkan: menunggu persetujuan pemilik (`supabase/pending/`). Lanjut P2-P3 (gloss 700, interlinear, akar, nahwu).
 - **2026-10-15 (sesi spesifikasi, Claude Opus 5.5):** menulis ulang bagian "Urutan implementasi" di `docs/SPEC_FASE1.md` sebagai teks (diagram asli tidak terekspor), menyelaraskannya dengan kondisi repo, menambah tabel pemetaan nama spec ke repo dan paket kerja P1–P5. Hanya dokumen; tidak ada perubahan kode. Keputusan terbuka tetap di bagian 9.
