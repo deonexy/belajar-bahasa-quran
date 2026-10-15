@@ -37,3 +37,8 @@ Teks ayat berasal dari edisi Hafs di atas, bukan berkas Tanzil. **Lisensi masing
 - Login diganti ke email + kata sandi dan Google OAuth; ada halaman `/register`. Tautan magic link dihapus karena memerlukan akun yang dibuat manual.
 - Pendaftaran terbuka; data tiap pengguna terisolasi oleh RLS (`user_id = auth.uid()`). Untuk menutup pendaftaran, matikan *Allow new users to sign up* di dashboard Supabase.
 - Google OAuth perlu diaktifkan di dashboard Supabase (Authentication → Providers → Google) dengan Client ID/Secret dari Google Cloud Console.
+
+## Kosakata dan kuis
+- Persen pemahaman per kata = (level/3) x min(1, stabilitas/21 hari) x 100 (`understanding()` di engine, dipakai juga oleh tingkat pemahaman global).
+- `/kosakata`: daftar lemma yang sudah dibuka beserta persen, level, status, dan jadwal ulang; bisa dicari, difilter, dan diurutkan.
+- `/kuis`: 10 soal dibangun ulang tiap dibuka dari kata yang sudah pernah dijawab. Pemilihan acak berbobot: pemahaman rendah dan jatuh tempo lebih sering muncul. Jawaban memakai `submitReview` yang sama dengan sesi belajar, sehingga level dan jadwal FSRS ikut naik/turun; ringkasan menampilkan perubahan persen per kata.

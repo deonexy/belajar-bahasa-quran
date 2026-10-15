@@ -9,6 +9,7 @@ import {
   nextLevel,
   ratingFromSelfGrade,
   scheduleReview,
+  understanding,
   type ExerciseType,
   type FsrsCardJson,
   type ItemStatus,
@@ -30,6 +31,9 @@ export interface ReviewResult {
   level?: number;
   status?: ItemStatus;
   nextDue?: string;
+  /** Pemahaman item (0-100) sebelum dan sesudah jawaban ini. */
+  before?: number;
+  after?: number;
   error?: string;
 }
 
@@ -123,7 +127,14 @@ export async function submitReview(input: ReviewInput): Promise<ReviewResult> {
     .eq("item_id", input.itemId);
   if (upErr) return { ok: false, error: upErr.message };
 
-  return { ok: true, level: levelAfter, status, nextDue: fsrsAfter.due };
+  return {
+    ok: true,
+    level: levelAfter,
+    status,
+    nextDue: fsrsAfter.due,
+    before: understanding(ui.level, card.stability),
+    after: understanding(levelAfter, fsrsAfter.stability),
+  };
 }
 
 export async function finishSession(): Promise<void> {

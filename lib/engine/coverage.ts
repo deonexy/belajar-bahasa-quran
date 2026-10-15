@@ -18,13 +18,19 @@ export function coverage(
   return (sum / totalWords) * 100;
 }
 
+/** Pemahaman satu item, 0-100: (level/3) x min(1, stabilitas/21 hari). */
+export function understanding(level: number, stability: number): number {
+  const l = Math.max(0, Math.min(3, level)) / 3;
+  const st = Math.max(0, Math.min(1, stability / MASTERY_STABILITY_DAYS));
+  return l * st * 100;
+}
+
 /** Tingkat pemahaman 0-100, dibobot frekuensi (SPEC 8). */
 export function comprehension(items: UserItemWithFreq[]): number {
   let weighted = 0;
   let totalFreq = 0;
   for (const it of items) {
-    const s =
-      (it.level / 3) * Math.min(1, it.fsrs.stability / MASTERY_STABILITY_DAYS);
+    const s = understanding(it.level, it.fsrs.stability) / 100;
     weighted += s * it.freq;
     totalFreq += it.freq;
   }

@@ -56,6 +56,17 @@ async function HomeContent() {
       </section>
 
       <section className="grid grid-cols-2 gap-3">
+        <Link href="/kuis" className="rounded-2xl border border-current/15 p-4 text-sm">
+          <p className="font-medium">Kuis latihan</p>
+          <p className="mt-0.5 text-xs opacity-60">Ulang kata yang sudah dipelajari</p>
+        </Link>
+        <Link href="/kosakata" className="rounded-2xl border border-current/15 p-4 text-sm">
+          <p className="font-medium">Daftar kata</p>
+          <p className="mt-0.5 text-xs opacity-60">Lihat persen pemahaman tiap kata</p>
+        </Link>
+      </section>
+
+      <section className="grid grid-cols-2 gap-3">
         <Stat label="Streak" value={`${stats.streak} hari`} />
         <Stat label="Kata dikuasai" value={`${stats.lemmasMastered}`} sub={`${stats.lemmasOpened} sudah dibuka`} />
         <Stat label="Kata Al-Qur'an dipahami" value={`${stats.coveragePct.toFixed(1)}%`} />

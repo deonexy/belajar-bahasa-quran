@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { comprehension, type UserItemWithFreq, type FsrsCardJson } from "@/lib/engine";
 import { localDate } from "./daily";
+import { fetchLemmas } from "./lemmas";
 
 /** Streak: hari beruntun (zona waktu pengguna) yang punya review. Hari ini boleh belum. */
 export function computeStreak(days: string[], tz: string): number {
@@ -47,14 +48,10 @@ export async function getHomeStats(
     .map((r) => ({ ...r, item: Array.isArray(r.items) ? r.items[0] : r.items }))
     .filter((r) => r.item.kind === "lemma");
 
-  const freqById = new Map<number, number>();
-  if (lemmaRows.length > 0) {
-    const { data: lem } = await supabase
-      .from("lemmas")
-      .select("id,freq")
-      .in("id", lemmaRows.map((r) => r.item.ref_id));
-    for (const l of lem ?? []) freqById.set(l.id, l.freq);
-  }
+  const lemmaInfo = await fetchLemmas(supabase, lemmaRows.map((r) => r.item.ref_id));
+  const freqById = new Map<number, number>(
+    [...lemmaInfo.values()].map((l) => [l.id, l.freq]),
+  );
   const withFreq: UserItemWithFreq[] = lemmaRows.map((r) => ({
     itemId: 0,
     kind: "lemma",

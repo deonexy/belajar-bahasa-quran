@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { chooseExercise, type ItemKind } from "@/lib/engine";
+import { chooseExercise, understanding, type ItemKind } from "@/lib/engine";
 import type {
   AyahCard,
   ExampleView,
@@ -67,6 +67,25 @@ async function exampleFor(
   };
 }
 
+interface QueueRow {
+  itemId: number;
+  level: number;
+  reps: number;
+  kind: ItemKind;
+  refId: number;
+}
+
+function toQueueRow(r: Row): QueueRow {
+  const it = Array.isArray(r.items) ? r.items[0] : r.items;
+  return {
+    itemId: Number(r.item_id),
+    level: Number(r.level),
+    reps: Number(r.fsrs?.reps ?? 0),
+    kind: it.kind as ItemKind,
+    refId: Number(it.ref_id),
+  };
+}
+
 /** Membangun antrean kartu sesi: review jatuh tempo + item baru hari ini. */
 export async function buildSession(
   supabase: SupabaseClient,
@@ -81,15 +100,54 @@ export async function buildSession(
     .lte("due_at", new Date().toISOString())
     .order("due_at")
     .limit(MAX_CARDS);
-  const rows = ((due ?? []) as Row[]).map((r) => ({
-    itemId: Number(r.item_id),
-    level: Number(r.level),
-    reps: Number(r.fsrs?.reps ?? 0),
-    kind: (Array.isArray(r.items) ? r.items[0] : r.items).kind as ItemKind,
-    refId: Number((Array.isArray(r.items) ? r.items[0] : r.items).ref_id),
-  }));
+  const rows = ((due ?? []) as Row[]).map(toQueueRow);
   if (rows.length === 0) return [];
+  return cardsFromRows(supabase, rows, rng);
+}
 
+/**
+ * Kuis latihan dinamis: memilih kata yang sudah dipelajari (pernah direview),
+ * dengan peluang lebih besar untuk kata yang pemahamannya rendah atau sudah
+ * lewat jatuh tempo. Setiap panggilan menghasilkan soal berbeda.
+ */
+export async function buildQuiz(
+  supabase: SupabaseClient,
+  userId: string,
+  count = 10,
+  rng: () => number = Math.random,
+): Promise<SessionCard[]> {
+  const { data } = await supabase
+    .from("user_items")
+    .select("item_id,level,fsrs,due_at,status,items!inner(kind,ref_id)")
+    .eq("user_id", userId)
+    .eq("items.kind", "lemma")
+    .neq("status", "suspended");
+  const all = ((data ?? []) as Row[]).filter((r) => Number(r.fsrs?.reps ?? 0) >= 1);
+  if (all.length === 0) return [];
+
+  const now = Date.now();
+  const weighted = all.map((r) => {
+    const u = understanding(Number(r.level), Number(r.fsrs?.stability ?? 0)) / 100;
+    const overdue = new Date(r.due_at).getTime() <= now ? 0.3 : 0;
+    return { row: r, weight: 0.1 + (1 - u) + overdue };
+  });
+
+  // Pengambilan acak berbobot tanpa pengembalian (Efraimidis-Spirakis).
+  const picked = weighted
+    .map((w) => ({ w, key: Math.pow(rng(), 1 / w.weight) }))
+    .sort((x, y) => y.key - x.key)
+    .slice(0, count)
+    .map((x) => toQueueRow(x.w.row));
+
+  const cards = await cardsFromRows(supabase, picked, rng);
+  return shuffle(cards, rng);
+}
+
+async function cardsFromRows(
+  supabase: SupabaseClient,
+  rows: QueueRow[],
+  rng: () => number,
+): Promise<SessionCard[]> {
   const lemmaRows = rows.filter((r) => r.kind === "lemma");
   const lessonRows = rows.filter((r) => r.kind === "lesson");
   const ayahRows = rows.filter((r) => r.kind === "ayah");
