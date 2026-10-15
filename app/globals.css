@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fafaf7;
+  --foreground: #1c1c1a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0d0f0e;
+    --foreground: #ececE6;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.arab {
+  font-family: "Amiri", "Noto Naskh Arabic", "Scheherazade New", "Traditional Arabic", serif;
+  direction: rtl;
+  line-height: 1.9;
+}
+
+.prose-lesson h2 { font-size: 1.1rem; font-weight: 600; margin: 1.25rem 0 0.5rem; }
+.prose-lesson p { margin: 0.5rem 0; line-height: 1.7; }
+.prose-lesson table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
+.prose-lesson th, .prose-lesson td { border: 1px solid color-mix(in srgb, currentColor 25%, transparent); padding: 0.4rem 0.6rem; text-align: left; }
+.prose-lesson strong { font-family: "Amiri", "Noto Naskh Arabic", serif; font-size: 1.15em; }

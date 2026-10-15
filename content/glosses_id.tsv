@@ -1,0 +1,321 @@
+rank	lemma_ar	pos	freq	gloss_id	reviewed
+1	مِن	P	3067	dari	false
+2	اللَّه	PN	2699	Allah	false
+3	لا	P	1742	tidak; janganlah	false
+4	فِي	P	1675	di; dalam	false
+5	قالَ	V	1618	berkata	false
+6	ما	N	1584	apa; yang	false
+7	إِنّ	P	1536	sesungguhnya	false
+8	الَّذِي	N	1468	yang (laki-laki tunggal)	false
+9	عَلَى	P	1444	atas; di atas	false
+10	كانَ	V	1358	adalah; dahulu ada	false
+11	ذا	N	1058	ini; itu	false
+12	رَبّ	N	975	Tuhan; pemelihara	false
+13	ما	P	968	tidak (penafian)	false
+14	هم	PRON	906	mereka (laki-laki)	false
+15	مَن	N	871	siapa; barang siapa	false
+16	إِلَى	P	742	kepada; hingga	false
+17	إِن	P	691	jika	false
+18	إِلّا	P	659	kecuali	false
+19	ه	PRON	637	dia; -nya (laki-laki)	false
+20	أَن	P	568	bahwa	false
+21	آمَنَ	V	537	beriman	false
+22	هو	PRON	481	dia (laki-laki)	false
+23	يَوْم	N	475	hari	false
+24	أَرْض	N	461	bumi	false
+25	عَن	P	417	dari; tentang	false
+26	قَد	P	406	sungguh; telah	false
+27	كم	PRON	395	kamu sekalian; -mu (jamak)	false
+28	إِذا	N	383	apabila	false
+29	قَوْم	N	383	kaum	false
+30	عَلِمَ	V	382	mengetahui	false
+31	آيَة	N	382	tanda; ayat	false
+32	كُلّ	N	359	setiap; seluruh	false
+33	لَم	P	348	tidak (lampau)	false
+34	أَنّ	P	343	bahwasanya	false
+35	جَعَلَ	V	340	menjadikan	false
+36	ثُمّ	P	338	kemudian	false
+37	رَسُول	N	332	rasul; utusan	false
+38	عَذاب	N	322	azab	false
+39	سَماء	N	310	langit	false
+40	نَفْس	N	295	diri; jiwa	false
+41	كَفَرَ	V	289	kafir; ingkar	false
+42	شَىْء	N	283	sesuatu	false
+43	أَو	P	280	atau	false
+44	جاءَ	V	278	datang	false
+45	عَمِلَ	V	276	mengerjakan	false
+46	آتَى	V	271	memberi	false
+47	رَأَى	V	271	melihat	false
+48	بَيْن	N	266	antara	false
+49	أَتَى	V	264	datang	false
+50	كِتاب	N	260	kitab	false
+51	حَقّ	N	247	kebenaran; hak	false
+52	قَبْل	N	242	sebelum	false
+53	ناس	N	241	manusia	false
+54	إِذ	N	239	ketika	false
+55	شاءَ	V	236	menghendaki	false
+56	أَيّ	N	215	yang mana; siapa pun	false
+57	مُؤْمِن	N	202	orang beriman	false
+58	لَو	P	201	seandainya	false
+59	بَعْد	N	199	sesudah	false
+60	عِند	N	197	di sisi	false
+61	خَلَقَ	V	184	menciptakan	false
+62	أَنزَلَ	V	183	menurunkan	false
+63	خَيْر	N	178	kebaikan; lebih baik	false
+64	كَذَّبَ	V	176	mendustakan	false
+65	سَبِيل	N	176	jalan	false
+66	دَعا	V	170	menyeru; berdoa	false
+67	اتَّقَى	V	166	bertakwa	false
+68	أَمْر	N	166	urusan; perintah	false
+69	مَع	N	164	bersama	false
+70	عَلِيم	N	163	Maha Mengetahui	false
+71	بَعْض	N	157	sebagian	false
+72	كافِر	N	156	orang kafir	false
+73	ذُو	N	156	pemilik; yang mempunyai	false
+74	آخِر	N	155	akhir; terakhir	false
+75	لَمّا	N	154	ketika; belum	false
+76	غَيْر	N	147	selain; bukan	false
+77	إِلٰه	N	147	tuhan; sembahan	false
+78	نار	N	145	api; neraka	false
+79	هَدَى	V	144	memberi petunjuk	false
+80	دُون	N	144	selain; di bawah	false
+81	حَتَّى	P	142	hingga; sampai	false
+82	أَرادَ	V	139	menghendaki	false
+83	مُوسَى	PN	136	Musa	false
+84	اتَّبَعَ	V	136	mengikuti	false
+85	أنتم	PRON	135	kalian	false
+86	قَلْب	N	132	hati	false
+87	عَبْد	N	131	hamba	false
+88	أَرْسَلَ	V	130	mengutus	false
+89	لَعَلّ	P	129	semoga; agar	false
+90	ظالِم	N	129	orang zalim	false
+91	أَخَذَ	V	127	mengambil	false
+92	بَل	P	127	bahkan; tetapi	false
+93	أَهْل	N	127	penghuni; keluarga	false
+94	ها	PRON	125	dia (perempuan); -nya	false
+95	أَم	P	124	ataukah	false
+96	اتَّخَذَ	V	124	menjadikan; mengambil	false
+97	عَبَدَ	V	122	menyembah	false
+98	يَد	N	120	tangan	false
+99	مُبِين	N	119	nyata; jelas	false
+100	رَحِيم	N	116	Maha Penyayang	false
+101	دُنْيا	N	115	dunia	false
+102	رَحْمَة	N	114	rahmat	false
+103	ظَلَمَ	V	110	berbuat zalim	false
+104	عَظِيم	N	107	agung; besar	false
+105	لَن	P	106	tidak akan	false
+106	سَأَلَ	V	106	bertanya; meminta	false
+107	وَجَدَ	V	106	mendapati	false
+108	عِلْم	N	105	ilmu	false
+109	أَجْر	N	105	pahala; upah	false
+110	عَزِيز	N	101	Maha Perkasa	false
+111	أَخْرَجَ	V	99	mengeluarkan	false
+112	حَكِيم	N	97	Maha Bijaksana	false
+113	جَنَّة	N	96	surga; kebun	false
+114	أَكَلَ	V	93	makan	false
+115	هَل	P	93	apakah	false
+116	دِين	N	92	agama; pembalasan	false
+117	قَوْل	N	92	perkataan	false
+118	غَفُور	N	91	Maha Pengampun	false
+119	لَيْسَ	V	89	bukan; tidak	false
+120	مَثَل	N	88	perumpamaan	false
+121	فَعَلَ	V	88	melakukan	false
+122	مَلَك	N	88	malaikat	false
+123	نا	PRON	88	kami; -kami	false
+124	نَظَرَ	V	87	memandang; memperhatikan	false
+125	نحن	PRON	86	kami	false
+126	وَلِيّ	N	86	pelindung; wali	false
+127	مال	N	86	harta	false
+128	هُدًى	N	85	petunjuk	false
+129	ذَكَرَ	V	84	menyebut; mengingat	false
+130	فَضْل	N	84	karunia	false
+131	لَيْل	N	84	malam	false
+132	صَلاة	N	83	salat; doa	false
+133	كَيْف	N	83	bagaimana	false
+134	قَتَلَ	V	83	membunuh	false
+135	خافَ	V	83	takut	false
+136	ك	PRON	82	kamu; -mu (tunggal)	false
+137	أَوَّل	N	82	pertama; awal	false
+138	أنت	PRON	81	kamu (tunggal)	false
+139	شَيْطان	PN	80	setan	false
+140	بُنَىّ	N	80	wahai anakku	false
+141	أَكْثَر	N	80	kebanyakan; lebih banyak	false
+142	رَجَعَ	V	79	kembali	false
+143	أَصْحاب	N	78	para penghuni; para sahabat	false
+144	تَوَلَّى	V	78	berpaling	false
+145	سَمِعَ	V	78	mendengar	false
+146	ى	PRON	78	aku; -ku	false
+147	أَمَرَ	V	77	memerintahkan	false
+148	جَهَنَّم	PN	77	Jahanam	false
+149	زَوْج	N	76	pasangan; istri	false
+150	دَخَلَ	V	76	masuk	false
+151	حَياة	N	76	kehidupan	false
+152	ذِكْر	N	76	peringatan; zikir	false
+153	مِثْل	N	75	seperti; semisal	false
+154	نَبِيّ	N	75	nabi	false
+155	لَوْلا	P	75	mengapa tidak; kalau bukan karena	false
+156	أَخ	N	75	saudara	false
+157	خالِد	N	74	kekal	false
+158	فِرْعَوْن	PN	74	Firaun	false
+159	أَحَد	N	74	seorang; salah satu	false
+160	عالَم	N	73	alam semesta	false
+161	جَزَى	V	73	membalas	false
+162	أَلِيم	N	72	pedih	false
+163	وَجْه	N	72	wajah	false
+164	أَطاعَ	V	72	menaati	false
+165	أَوْحَى	V	72	mewahyukan	false
+166	إِنسان	N	71	manusia	false
+167	بَيِّنَة	N	71	bukti yang nyata	false
+168	أَشْرَكَ	V	71	mempersekutukan	false
+169	عَمَل	N	71	perbuatan	false
+170	أَلْقَى	V	71	melemparkan; menjatuhkan	false
+171	قَلِيل	N	70	sedikit	false
+172	قِيامَة	N	70	hari kiamat	false
+173	آخَر	N	70	yang lain	false
+174	وَعَدَ	V	70	menjanjikan	false
+175	إِبْراهِيم	PN	69	Ibrahim	false
+176	أَنفَقَ	V	68	menafkahkan	false
+177	أنا	PRON	68	aku	false
+178	قُرْءان	PN	68	Al-Qur'an	false
+179	لٰكِن	P	65	tetapi	false
+180	غَفَرَ	V	65	mengampuni	false
+181	صالِح	N	65	saleh; baik	false
+182	لٰكِنّ	P	65	tetapi sesungguhnya	false
+183	بَيْت	N	65	rumah	false
+184	يَمِين	N	65	kanan; sumpah	false
+185	أَضَلَّ	V	64	menyesatkan	false
+186	أُمَّة	N	64	umat	false
+187	آباء	N	64	bapak-bapak; nenek moyang	false
+188	أَصابَ	V	64	menimpa; mengenai	false
+189	أَحْبَبْ	V	64	mencintai; menyukai	false
+190	ماء	N	63	air	false
+191	كَثِير	N	63	banyak	false
+192	تابَ	V	63	bertobat	false
+193	ابْن	N	63	anak laki-laki	false
+194	هى	PRON	63	dia (perempuan)	false
+195	نَزَّلَ	V	62	menurunkan (bertahap)	false
+196	صالِحَة	N	62	yang saleh (perempuan); kebajikan	false
+197	كَسَبَ	V	62	mengusahakan; memperoleh	false
+198	رَزَقَ	V	61	memberi rezeki	false
+199	تَلَى	V	61	membaca; mengikuti	false
+200	صادِق	N	59	orang yang benar	false
+201	نَصَرَ	V	59	menolong	false
+202	نِساء	N	59	para wanita	false
+203	قَضَى	V	59	memutuskan; menetapkan	false
+204	صَبَرَ	V	58	bersabar	false
+205	سَيِّئَة	N	58	keburukan; kejahatan	false
+206	نَذِير	N	58	pemberi peringatan	false
+207	رَحْمٰن	N	57	Maha Pengasih	false
+208	جَرَيْ	V	57	mengalir	false
+209	قَرْيَة	N	57	negeri; desa	false
+210	عَيْن	N	57	mata; sumber air	false
+211	نَهار	N	57	siang	false
+212	شَهِيد	N	56	saksi	false
+213	مَسَّ	V	56	menyentuh; menimpa	false
+214	وَلَد	N	56	anak	false
+215	شَدِيد	N	56	keras; sangat	false
+216	رِزْق	N	55	rezeki	false
+217	ضَرَبَ	V	55	memukul; membuat (perumpamaan)	false
+218	أَمّا	P	55	adapun	false
+219	أَقامَ	V	54	mendirikan	false
+220	نَهَر	N	54	sungai	false
+221	قاتَلَ	V	54	memerangi	false
+222	جَمِيع	N	53	semuanya	false
+223	خَرَجَ	V	53	keluar	false
+224	ضَلَّ	V	53	tersesat	false
+225	بَعَثَ	V	52	membangkitkan; mengutus	false
+226	خَلْق	N	52	ciptaan; makhluk	false
+227	أَجَل	N	52	batas waktu; ajal	false
+228	مُجْرِم	N	52	orang durhaka; pendosa	false
+229	تَحْت	N	51	di bawah	false
+230	أَحْيا	V	51	menghidupkan	false
+231	جَنَّة	PN	51	Surga	false
+232	بَصِير	N	51	Maha Melihat	false
+233	أَهْلَكَ	V	51	membinasakan	false
+234	تَذَكَّرَ	V	51	mengambil pelajaran; mengingat	false
+235	مَوْت	N	50	kematian	false
+236	عَدُوّ	N	50	musuh	false
+237	نِعْمَة	N	50	nikmat	false
+238	سُوء	N	50	keburukan	false
+239	افْتَرَى	V	50	mengada-adakan (kebohongan)	false
+240	مُتَّقي	N	49	orang yang bertakwa	false
+241	غَيْب	N	49	yang gaib	false
+242	زادَ	V	49	menambah	false
+243	عَقَلُ	V	49	berpikir; memahami	false
+244	كَتَبَ	V	49	menuliskan; mewajibkan	false
+245	أَعْلَم	N	49	lebih mengetahui	false
+246	وَعْد	N	49	janji	false
+247	بَصَر	N	48	penglihatan	false
+248	دار	N	48	negeri; tempat tinggal	false
+249	مُلْك	N	48	kerajaan; kekuasaan	false
+250	ساعَة	N	48	waktu; hari kiamat	false
+251	ظَنَّ	V	47	menyangka	false
+252	سَمِيع	N	47	Maha Mendengar	false
+253	شَكَرَ	V	46	bersyukur	false
+254	نَبَّأَ	V	46	memberitahukan	false
+255	أَب	N	46	ayah	false
+256	صِراط	N	45	jalan	false
+257	قَدِير	N	45	Maha Kuasa	false
+258	إِيمان	N	45	iman	false
+259	حَكَمَ	V	45	menghukumi; memutuskan	false
+260	يَذَرَ	V	45	membiarkan; meninggalkan	false
+261	خَبِير	N	45	Maha Teliti	false
+262	أَنذَرَ	V	44	memberi peringatan	false
+263	شَهِدَ	V	44	menyaksikan	false
+264	مُشْرِك	N	44	orang musyrik	false
+265	حَسِبَ	V	44	mengira	false
+266	صَدْر	N	44	dada	false
+267	نادَى	V	44	memanggil	false
+268	مَلَكَتْ	V	44	memiliki	false
+269	حَمْد	N	43	pujian	false
+270	نُور	N	43	cahaya	false
+271	إِسْرائِيل	PN	43	Israil	false
+272	نُوح	PN	43	Nuh	false
+273	سَبَّحَ	V	42	bertasbih	false
+274	كَلِمَة	N	42	kata; firman	false
+275	جَزاء	N	42	balasan	false
+276	اسْتَطاعَ	V	42	mampu	false
+277	أُدْخِلَ	V	42	dimasukkan	false
+278	سَوْف	P	42	kelak akan	false
+279	سَلام	N	42	kedamaian; salam	false
+280	فَوْق	N	41	di atas	false
+281	عَلَّمَ	V	41	mengajarkan	false
+282	سُبْحان	N	41	Maha Suci	false
+283	بَحْر	N	41	laut	false
+284	حَمَلَ	V	41	membawa; memikul	false
+285	عَذَّبَ	V	41	menyiksa	false
+286	تَرَكَ	V	40	meninggalkan	false
+287	اسْتَكْبَرَ	V	40	menyombongkan diri	false
+288	اهْتَدَى	V	40	mendapat petunjuk	false
+289	أَرَيْ	V	40	memperlihatkan	false
+290	وَيْل	N	40	celakalah; kecelakaan	false
+291	بِئْسَ	V	40	seburuk-buruk	false
+292	خَشِيَ	V	40	takut; khusyuk	false
+293	بَلَغَ	V	40	sampai	false
+294	اسْتَغْفَرَ	V	40	memohon ampun	false
+295	كَبِير	N	40	besar	false
+296	تَوَكَّلْ	V	40	bertawakal	false
+297	شَرِيك	N	40	sekutu	false
+298	إِذا	P	40	apabila	false
+299	اسْم	N	39	nama	false
+300	أَلا	P	39	ingatlah; bukankah	false
+301	إِذْن	N	39	izin	false
+302	ماتَ	V	39	mati	false
+303	حَرَّمَ	V	39	mengharamkan	false
+304	حِساب	N	39	perhitungan	false
+305	جَبَل	N	39	gunung	false
+306	بُشِّرَ	V	38	diberi kabar gembira	false
+307	مَيِّت	N	38	yang mati	false
+308	مُحْسِن	N	38	orang yang berbuat baik	false
+309	رَضِيَ	V	38	rida	false
+310	مَعْرُوف	N	38	kebaikan; yang makruf	false
+311	ضَلال	N	38	kesesatan	false
+312	مُسْتَقِيم	N	37	lurus	false
+313	فاسِق	N	37	orang fasik	false
+314	يَحْزُن	V	37	bersedih	false
+315	نَجَّى	V	37	menyelamatkan	false
+316	كُفْر	N	37	kekafiran	false
+317	حَشَرَ	V	37	mengumpulkan	false
+318	ذَنب	N	37	dosa	false
+319	بَشَر	N	37	manusia	false
+320	صَدَّ	V	37	menghalangi	false
