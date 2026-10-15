@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { addLemmaToReview } from "./actions";
 
@@ -86,7 +87,14 @@ export default function Reader({ surah, ayahs }: { surah: number; ayahs: ReaderA
                 <span className="text-2xl" lang="ar" dir="rtl">{picked.lemmaAr ?? picked.text}</span>
                 <span className="opacity-80">{picked.gloss ?? "(arti belum tersedia)"}</span>
               </div>
-              {picked.rootAr && <div>Akar: <span lang="ar">{picked.rootAr}</span></div>}
+              {picked.rootAr && (
+                <div>
+                  Akar:{" "}
+                  <Link className="underline" href={`/akar/${encodeURIComponent(picked.rootAr)}`} lang="ar">
+                    {picked.rootAr}
+                  </Link>
+                </div>
+              )}
               {picked.features.length > 0 && <div>Ciri: {picked.features.join(", ")}</div>}
               <div className="opacity-70">
                 Status: {picked.level === null ? "belum dipelajari" : LEVEL_NAMES[picked.level]}

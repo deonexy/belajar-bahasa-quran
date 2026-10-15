@@ -54,7 +54,7 @@ Struktur penting:
 | `components/auth-form.tsx` | form login/register + Google |
 | `supabase/migrations/` | 0001 konten, 0002 pengguna, 0003 kunci lemma, 0004 import_log, 0005 fungsi bantu |
 | `supabase/functions/import-corpus/` | parser korpus (`parse.ts` + tes), impor idempoten, `glosses.ts` |
-| `supabase/seed/` | `lessons.sql`, `gloss_backfill.sql` |
+| `supabase/seed/` | `lessons.sql`, `gloss_backfill.sql`, `glosses_321_700.sql`, `lessons_nahwu_sharaf.sql` (dihasilkan `scripts/gen_lessons_f4.py`; teks ayat diambil dari `data/raw/fawaz`) |
 | `content/glosses_id.tsv`, `content/glosses_id_321_700.tsv` | draf arti Indonesia lemma peringkat 1-320 dan 321-700 (kunci `rank` = `freq_rank`), kolom `reviewed` masih semua `false` |
 | `docs/` | `DECISIONS.md` (keputusan teknis), `SPEC_FASE1.md` (spesifikasi pembaruan), file ini |
 
@@ -123,13 +123,15 @@ Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabe
 
 1. ~~M3 penyelarasan + dashboard F7~~ selesai (kecuali RLS `review_logs`, butir 5 bagian 9).
 2. ~~Arti lemma sampai 700~~ selesai (draf; pemilik perlu meninjau). ~~Pembaca interlinear F5~~ selesai (`/baca`).
-3. Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4).
+3. ~~Halaman akar + kuis pola (F3), unit nahwu-sharaf (F4)~~ selesai versi awal (8 pelajaran baru, `/akar/[root]`, `/pola`).
 4. Tes pemahaman ayat dengan AI (F6): perlu API key LLM sebagai secret Edge Function (diisi pemilik).
 5. Nice-to-have N1-N7 (heatmap, prioritas surah, mode dengar, leech, jurnal, PWA/Telegram, ekspor).
 
 Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/fa'il) **tidak ada** di sumber morfologi; yang ada: bentuk kata kerja (VF 1-10), partisip aktif/pasif, masdar, kasus (NOM/ACC/GEN), mood, person/gender/jumlah, keluarga partikel (إِنّ/كَان).
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
+
+- **2026-10-15 (Claude Sonnet 5.5):** F4: 8 pelajaran nahwu-sharaf baru (tasrif, isim isyarah, maushul, jumlah ismiyah/fi'liyah, idhafah, na't, i'rab dasar; seq 400-2500; sudah diterapkan ke DB beserta `items`). F3: `/akar/[root]` (lema sebaran satu akar, ditaut dari pembaca) dan `/pola` (kuis pola kata dari fitur PERF/IMPF/IMPV/ACT_PCPL/PASS_PCPL/VN; latihan bebas, skor TIDAK disimpan dan tidak memengaruhi gerbang). Batasan: tidak ada wazan isim di data, jadi kuis wazan isim belum ada. Isi pelajaran draf AI, perlu ditinjau pemilik/ustaz.
 
 - **2026-10-15 (Claude Sonnet 5.5):** F5 pembaca interlinear: `/baca` (daftar surah) dan `/baca/[surah]?hal=N` (10 ayat/halaman; query dibatasi per rentang ayat karena batas 1000 baris PostgREST). Kata diwarnai menurut level lemma pengguna, toggle sembunyikan arti/terjemah, ketuk kata → lemma, akar, ciri morfologi (`lib/morph-labels.ts`), tombol "Tambah ke review" (`app/baca/actions.ts`, idempoten, `priority=true`). Jebakan: tipe `PageProps<"/baca/[surah]">` baru ada setelah `npx next typegen`/build.
 

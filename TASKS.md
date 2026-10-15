@@ -34,7 +34,8 @@ Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 
 ## Berikutnya
 - [x] F5 pembaca ayat interlinear (`/baca`)
-- [ ] F3 halaman akar + kuis pola; F4 unit nahwu-sharaf
+- [x] F3 halaman akar + kuis pola (versi awal); F4 8 unit nahwu-sharaf
+- [ ] Pemilik: tinjau isi 8 pelajaran nahwu-sharaf (`supabase/seed/lessons_nahwu_sharaf.sql`)
 - [ ] F6 tes ayat dengan AI (butuh API key LLM di secret Edge Function)
 - [ ] M4 Pengingat: Web Push, Telegram, pg_cron
 - [ ] M5 Statistik & offline (PWA)
