@@ -39,6 +39,8 @@ Rincian paket kerja P1–P5: `docs/SPEC_FASE1.md` bagian "Urutan implementasi".
 ## Berikutnya
 - [x] F5 pembaca ayat interlinear (`/baca`)
 - [x] F3 halaman akar + kuis pola (versi awal); F4 8 unit nahwu-sharaf
+- [x] README: fitur, panduan instalasi Vercel + Supabase, cara memperbarui via fork
+- [ ] Uji panduan instalasi README end-to-end dengan proyek Supabase dan Vercel baru (belum pernah diuji)
 - [x] Daftar semua pelajaran nahwu-sharaf yang sudah dipelajari (`/pelajaran`, baca ulang `/pelajaran/[code]`)
 - [ ] Pemilik: tinjau isi 8 pelajaran nahwu-sharaf (`supabase/seed/lessons_nahwu_sharaf.sql`)
 - [ ] F6 tes ayat dengan AI (butuh API key LLM di secret Edge Function)
