@@ -12,6 +12,7 @@ const MENU = [
   { href: "/kuis", label: "Kuis", icon: "✏️" },
   { href: "/kosakata", label: "Kata", icon: "🔤" },
   { href: "/pola", label: "Pola", icon: "🧩" },
+  { href: "/pelajaran", label: "Pelajaran", icon: "📚" },
   { href: "/dashboard", label: "Target", icon: "📈" },
 ];
 
@@ -71,7 +72,7 @@ async function HomeContent() {
         </Link>
       </section>
 
-      <nav className="grid grid-cols-5 gap-2">
+      <nav className="grid grid-cols-3 gap-2 sm:grid-cols-6">
         {MENU.map((m) => (
           <Link
             key={m.href}

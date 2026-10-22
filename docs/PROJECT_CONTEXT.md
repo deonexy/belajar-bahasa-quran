@@ -50,7 +50,7 @@ Struktur penting:
 | `lib/server/` | `daily.ts` (rencana harian + buka item baru), `session.ts` (`buildSession`, `buildQuiz`), `stats.ts` (streak, cakupan), `lemmas.ts` |
 | `lib/supabase/` | klien browser dan server (`@supabase/ssr`) |
 | `proxy.ts` | proteksi route + penyegar sesi (pengganti `middleware.ts` di Next 16) |
-| `app/` | `/` beranda, `/belajar`, `/kuis`, `/kosakata`, `/login`, `/register`, `/auth/callback` |
+| `app/` | `/` beranda, `/belajar`, `/kuis`, `/kosakata`, `/pelajaran` (+ `/pelajaran/[code]`), `/login`, `/register`, `/auth/callback` |
 | `components/auth-form.tsx` | form login/register + Google |
 | `supabase/migrations/` | 0001 konten, 0002 pengguna, 0003 kunci lemma, 0004 import_log, 0005 fungsi bantu |
 | `supabase/functions/import-corpus/` | parser korpus (`parse.ts` + tes), impor idempoten, `glosses.ts` |
@@ -131,6 +131,8 @@ Rincian per paket kerja (P1–P5), status milestone spec, dan pemetaan nama tabe
 Batasan data yang perlu diingat: wazan isim dan peran sintaksis (mubtada/khabar/fa'il) **tidak ada** di sumber morfologi; yang ada: bentuk kata kerja (VF 1-10), partisip aktif/pasif, masdar, kasus (NOM/ACC/GEN), mood, person/gender/jumlah, keluarga partikel (إِنّ/كَان).
 
 ## 11. Log sesi (paling baru di atas; hanya tambah, jangan hapus)
+
+- **2026-10-22 (Claude Sonnet 5.5):** fitur lihat semua pelajaran nahwu-sharaf yang sudah dipelajari. `/pelajaran` = daftar pelajaran yang sudah dibuka (baris `user_items` untuk item `kind=lesson`), urut `items.seq`, dengan jenis (Nahwu/Sharaf/Partikel) dan badge persen pemahaman (`understanding`) bila sudah lulus ≥ level 1 (`ever_reached_one`), "Baru" bila belum; keadaan kosong mengarah ke `/belajar`. `/pelajaran/[code]` = baca ulang isi pelajaran (markdown, gaya `prose-lesson`); pelajaran yang belum dibuka lewat mastery gate memberi 404 supaya kurikulum tetap bertahap. Menu beranda jadi 6 tombol (tambah "Pelajaran" 📚; grid 3 kolom di ponsel, 6 di layar lebar), tetap ikon + label pendek tanpa deskripsi. Label jenis di `lib/lesson-labels.ts` (file `page.tsx` tidak boleh mengekspor selain komponen halaman). Tanpa migrasi dan tanpa data baru. Latihan ulang soal pelajaran dari halaman ini belum ada (latihan tetap lewat `/belajar`). Catatan: `parse.test.ts` gagal bila `data/raw/` tidak ada (berkas mentah korpus tidak ada di repo); itu sudah ada sebelumnya dan tidak terkait.
 
 - **2026-10-16 (Claude Opus 5.5):** rencana M5 offline & audio disusun bersama pemilik dan dimasukkan ke `TASKS.md` (O1–O3) dan `docs/DECISIONS.md`. Aturan pemilik: data esensial kecil disimpan lokal otomatis; data besar diunduh hanya atas pilihan pengguna dengan penjelasan manfaat. Audio dari CDN pihak ketiga dengan pilihan qori, tidak disimpan di server. Hanya dokumen; tidak ada perubahan kode.
 
